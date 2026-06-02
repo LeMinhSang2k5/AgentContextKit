@@ -1,20 +1,43 @@
 # Changelog
 
-All notable changes to **agent-context-kit** are documented in this file.
+All notable changes to **ready-for-agents** are documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-02
+
 ### Added
 
-- `update --check` to verify generated context files without writing to disk
-- `update --json` machine-readable freshness output for CI
-- Generated file marker/hash support so `update` can skip user-authored files by default
-- `update --force` to intentionally overwrite untracked existing output files
-- `doctor --fix` to generate missing context files and refresh stale generated files safely
-- `doctor --fix --dry-run` and `doctor --fix --json` for preview and automation workflows
+- **`prompt`** — turn rough instructions into structured agent-ready prompts (no AI API)
+  - Sections: Task, Context, Requirements, Constraints, Verify, Unclear, Response (omit empty sections)
+  - Intents: `explain`, `review`, `fix`, `verify`, `clarify`, `general`
+  - `--stdin`, `--file`, interactive mode (TTY), `--json`, `--stats`
+  - `--target auto|en|vi` for response language instruction
+- **`update`** — refresh generated context files after repo changes
+  - `--check` — verify freshness without writing
+  - `--json` — machine-readable output for CI
+  - Marker/hash support to skip user-authored files by default
+  - `--force` — overwrite untracked existing output files
+- **`doctor --fix`** — generate missing context files and refresh stale generated files safely
+  - `--dry-run` and `--json` for preview and automation
+- **`init --cursor`** / **`init --claude`** / **`init --all`** — optional `.cursor/rules/ready-for-agents.mdc` and `CLAUDE.md` generators
+- **`doctor --fix`** supports `--cursor`, `--claude`, `--all` presets
+- Spec: `doc/guide/PROMPT_SPEC.md`, `doc/guide/PROMPT_EXAMPLES.md`
+- Tests: `prompt.test.ts`, `prompt-examples.test.ts`, `prompt-quality.test.ts`
+
+### Changed
+
+- **npm package renamed** from `agent-context-kit` to **`ready-for-agents`** (CLI binary `ready-for-agents`; the unscoped name on npm is owned by another account)
+- Generated marker and Cursor rule path: `ready-for-agents:generated`, `.cursor/rules/ready-for-agents.mdc`
+- `prompt` pipeline refactored into `segment`, `classify`, `extract`, `render` modules
+- Doctor and update workflows aligned with generated-file markers
+
+### Security
+
+- No network or AI API calls in core CLI paths (`prompt` remains rule-based)
 
 ## [0.1.0] - 2026-06-01
 
@@ -37,5 +60,6 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - No network or AI API calls in core CLI paths
 
-[Unreleased]: https://github.com/LeMinhSang2k5/AgentContextKit/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/LeMinhSang2k5/AgentContextKit/releases/tag/v0.1.0
+[Unreleased]: https://github.com/LeMinhSang2k5/ready-for-agents/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/LeMinhSang2k5/ready-for-agents/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/LeMinhSang2k5/ready-for-agents/releases/tag/v0.1.0

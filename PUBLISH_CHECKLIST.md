@@ -1,4 +1,4 @@
-# Publish checklist — agent-context-kit
+# Publish checklist — ready-for-agents
 
 Checklist trước khi `npm publish` (hoặc `pnpm publish`). Chạy từ root repo.
 
@@ -6,7 +6,7 @@ Checklist trước khi `npm publish` (hoặc `pnpm publish`). Chạy từ root r
 
 ## 1. Version & changelog
 
-- [ ] Bump `version` in `package.json` (semver: patch / minor / major)
+- [ ] Bump `version` in `package.json` (semver: patch / minor / major) — hiện **0.2.0**
 - [ ] Cập nhật [CHANGELOG.md](./CHANGELOG.md): chuyển mục `[Unreleased]` → `[x.y.z] - YYYY-MM-DD`
 - [ ] Tag git: `git tag vX.Y.Z` (sau khi merge release)
 
@@ -72,7 +72,7 @@ Không publish:
 
 ```bash
 npm pack
-tar -tzf agent-context-kit-*.tgz | head -30
+tar -tzf ready-for-agents-*.tgz | head -30
 ```
 
 ---
@@ -97,17 +97,17 @@ Trước lần publish đầu, cân nhắc thêm vào `package.json`:
 ```json
 "repository": {
   "type": "git",
-  "url": "git+https://github.com/LeMinhSang2k5/AgentContextKit.git"
+  "url": "git+https://github.com/LeMinhSang2k5/ready-for-agents.git"
 },
-"homepage": "https://github.com/LeMinhSang2k5/AgentContextKit#readme",
+"homepage": "https://github.com/LeMinhSang2k5/ready-for-agents#readme",
 "bugs": {
-  "url": "https://github.com/LeMinhSang2k5/AgentContextKit/issues"
+  "url": "https://github.com/LeMinhSang2k5/ready-for-agents/issues"
 }
 ```
 
 - [ ] `repository` / `homepage` đã khai báo (nếu public)
 - [ ] Đăng nhập npm: `npm whoami`
-- [ ] Tên package `agent-context-kit` còn trống hoặc bạn có quyền publish
+- [ ] Tên package `ready-for-agents` còn trống hoặc bạn có quyền publish
 
 ---
 
@@ -121,8 +121,8 @@ npm publish --dry-run
 npm publish --access public
 ```
 
-- [ ] Xác nhận trên https://www.npmjs.com/package/agent-context-kit
-- [ ] `npx agent-context-kit@X.Y.Z doctor --json` từ máy sạch (hoặc CI)
+- [ ] Xác nhận trên https://www.npmjs.com/package/ready-for-agents
+- [ ] `npx ready-for-agents@X.Y.Z doctor --json` từ máy sạch (hoặc CI)
 
 ---
 
@@ -137,8 +137,8 @@ npm publish --access public
 ## CI gate gợi ý (consumer repos)
 
 ```yaml
-- run: npx agent-context-kit doctor --json --cwd .
+- run: npx ready-for-agents doctor --json --cwd .
 - run: test "$(jq -e '.ok == true' < doctor.json)" # nếu redirect stdout
 ```
 
-Hoặc chỉ: `npx agent-context-kit doctor --json --cwd .` và dựa **exit code**.
+Hoặc chỉ: `npx ready-for-agents doctor --json --cwd .` và dựa **exit code**.

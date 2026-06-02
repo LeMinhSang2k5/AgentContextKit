@@ -1,10 +1,10 @@
 {
-  "name": "agent-context-kit",
-  "version": "0.1.0",
+  "name": "ready-for-agents",
+  "version": "0.2.0",
   "description": "Make any repository AI-agent-ready in 30 seconds.",
   "type": "module",
   "bin": {
-    "agent-context-kit": "./dist/cli.js"
+    "ready-for-agents": "./dist/cli.js"
   },
   "files": [
     "dist",
@@ -30,6 +30,14 @@
     "developer-tools"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeMinhSang2k5/ready-for-agents.git"
+  },
+  "homepage": "https://github.com/LeMinhSang2k5/ready-for-agents#readme",
+  "bugs": {
+    "url": "https://github.com/LeMinhSang2k5/ready-for-agents/issues"
+  },
   "engines": {
     "node": ">=18"
   },
