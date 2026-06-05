@@ -1,14 +1,37 @@
-# ready-for-agents
+<pre align="center">
+██████╗ ███████╗ █████╗ ██████╗ ██╗   ██╗    ███████╗ ██████╗ ██████╗
+██╔══██╗██╔════╝██╔══██╗██╔══██╗╚██╗ ██╔╝    ██╔════╝██╔═══██╗██╔══██╗
+██████╔╝█████╗  ███████║██║  ██║ ╚████╔╝     █████╗  ██║   ██║██████╔╝
+██╔══██╗██╔══╝  ██╔══██║██║  ██║  ╚██╔╝      ██╔══╝  ██║   ██║██╔══██╗
+██║  ██║███████╗██║  ██║██████╔╝   ██║       ██║     ╚██████╔╝██║  ██║
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝    ╚═╝       ╚═╝      ╚═════╝ ╚═╝  ╚═╝
 
-<p align="right">
-  <a href="./README.md">English</a> · <strong>Tiếng Việt</strong>
+ █████╗  ██████╗ ███████╗███╗   ██╗████████╗███████╗
+██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔════╝
+███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║   ███████╗
+██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║   ╚════██║
+██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║   ███████║
+╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
+</pre>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/ready-for-agents"><img src="https://img.shields.io/npm/v/ready-for-agents?style=for-the-badge&label=npm&labelColor=555555&color=CB3837&logo=npm&logoColor=white" alt="phiên bản npm"></a>
+  <a href="https://www.npmjs.com/package/ready-for-agents"><img src="https://img.shields.io/npm/dm/ready-for-agents?style=for-the-badge&label=npm&labelColor=555555&color=47A248" alt="lượt tải npm mỗi tháng"></a>
+  <a href="https://www.npmjs.com/package/ready-for-agents"><img src="https://img.shields.io/node/v/ready-for-agents?style=for-the-badge&label=node&labelColor=555555&color=339933&logo=node.js&logoColor=white" alt="phiên bản node"></a>
+  <a href="https://github.com/LeMinhSang2k5/ready-for-agents/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/ready-for-agents?style=for-the-badge&label=license&labelColor=555555&color=brightgreen" alt="giấy phép MIT"></a>
+  <a href="https://github.com/LeMinhSang2k5/ready-for-agents"><img src="https://img.shields.io/github/stars/LeMinhSang2k5/ready-for-agents?style=for-the-badge&label=stars&labelColor=555555&color=yellow&logo=github" alt="GitHub stars"></a>
+  <br>
+  <a href="https://github.com/LeMinhSang2k5/ready-for-agents/tree/main/doc/guide"><img src="https://img.shields.io/badge/DOCS-HƯỚNG%20DẪN-yellow?style=for-the-badge&labelColor=555555" alt="Tài liệu"></a>
+  <a href="https://github.com/LeMinhSang2k5/ready-for-agents"><img src="https://img.shields.io/badge/GITHUB-REPOSITORY-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
+  <a href="https://github.com/LeMinhSang2k5"><img src="https://img.shields.io/badge/BUILT%20BY-LeMinhSang-purple?style=for-the-badge&labelColor=555555" alt="Tác giả LeMinhSang"></a>
+  <a href="./README.md"><img src="https://img.shields.io/badge/LANG-ENGLISH-blue?style=for-the-badge&labelColor=555555" alt="English"></a>
 </p>
+
+---
 
 > **Biến mọi repository thành workspace sẵn sàng cho AI agent trong 30 giây.**
 
 CLI nhỏ quét project Node.js và sinh các file context cho **Cursor**, **Codex**, **Claude Code**, **Copilot** và các AI coding agent khác — để agent không còn đoán stack, script hay cấu trúc thư mục của bạn.
-
-[GitHub repository](https://github.com/LeMinhSang2k5/ready-for-agents) · [npm package](https://www.npmjs.com/package/ready-for-agents)
 
 ---
 
@@ -87,6 +110,7 @@ npx ready-for-agents query "kiểm tra doctor hoạt động đúng chưa" --jso
 
 ### Bảng lệnh nhanh
 
+
 | Lệnh          | Dùng khi bạn muốn...                           | Có ghi file không?                            |
 | ------------- | ---------------------------------------------- | --------------------------------------------- |
 | `init`        | tạo context files cho project                  | Có, trừ khi dùng `--dry-run`                  |
@@ -97,11 +121,13 @@ npx ready-for-agents query "kiểm tra doctor hoạt động đúng chưa" --jso
 | `index`       | tạo `.ready-for-agents/context-tree.json`      | Có, trừ `--dry-run` hoặc `--json`             |
 | `query`       | chọn section context phù hợp cho một task      | Không                                         |
 
+
 ---
 
 ## Vì sao cần tool này?
 
 AI agent hoạt động tốt hơn khi đã biết sẵn:
+
 
 | Không có context                     | Với `ready-for-agents`                   |
 | ------------------------------------ | ---------------------------------------- |
@@ -111,11 +137,13 @@ AI agent hoạt động tốt hơn khi đã biết sẵn:
 | Mỗi session phải giải thích lại repo | `PROJECT_CONTEXT.md` nằm ngay trong repo |
 | Agent đọc hết context mỗi lượt       | `query` chọn section liên quan trước     |
 
+
 ---
 
 ## Bạn nhận được gì?
 
 Sau `init`, thư mục gốc project có thể có:
+
 
 | File                                  | Mục đích                                                      |
 | ------------------------------------- | ------------------------------------------------------------- |
@@ -126,6 +154,7 @@ Sau `init`, thư mục gốc project có thể có:
 | `CLAUDE.md`                           | Hướng dẫn Claude Code tùy chọn (`init --claude` hoặc `--all`) |
 | `.ready-for-agents/context-tree.json` | Context tree cache gọn cho các file generated                 |
 | `.ready-for-agents.json`              | Config project tùy chọn (`config init`)                       |
+
 
 ```text
 my-app/
@@ -227,6 +256,7 @@ ready-for-agents init --cwd ./my-app --force
 
 ### Tùy chọn CLI
 
+
 | Flag           | Mô tả                                                                  |
 | -------------- | ---------------------------------------------------------------------- |
 | `--dry-run`    | In thông tin detect + preview đầy đủ; **không ghi** ra disk            |
@@ -237,7 +267,9 @@ ready-for-agents init --cwd ./my-app --force
 | `--index`      | Sinh `.ready-for-agents/context-tree.json`                             |
 | `--cwd <path>` | Thư mục project cần quét (mặc định: thư mục làm việc hiện tại)         |
 
+
 ### Tùy chọn update
+
 
 | Flag           | Mô tả                                                              |
 | -------------- | ------------------------------------------------------------------ |
@@ -250,6 +282,7 @@ ready-for-agents init --cwd ./my-app --force
 | `--all`        | Refresh toàn bộ file agent tùy chọn                                |
 | `--index`      | Regenerate `.ready-for-agents/context-tree.json`                   |
 | `--cwd <path>` | Thư mục project cần cập nhật (mặc định: thư mục làm việc hiện tại) |
+
 
 File generated có một HTML comment marker nhỏ kèm hash nội dung. `update` dùng marker này để phân biệt file do tool sinh với file bạn tự viết tay, và skip file có hash marker không còn khớp body.
 
@@ -267,6 +300,7 @@ ready-for-agents doctor --cwd /Users/you/projects/my-app
 ready-for-agents doctor --json
 ```
 
+
 | Flag           | Mô tả                                                              |
 | -------------- | ------------------------------------------------------------------ |
 | `--cwd <path>` | Thư mục project cần kiểm tra (mặc định: thư mục làm việc hiện tại) |
@@ -278,6 +312,7 @@ ready-for-agents doctor --json
 | `--claude`     | Với `--fix`, include `CLAUDE.md`                                   |
 | `--all`        | Với `--fix`, include toàn bộ file agent tùy chọn                   |
 | `--index`      | Với `--fix`, sinh `.ready-for-agents/context-tree.json`            |
+
 
 **Exit code:** `0` khi không có check `fail`; `1` khi có ít nhất một `fail` (ví dụ thiếu `package.json`).
 
@@ -301,20 +336,22 @@ ready-for-agents prompt --cwd /Users/you/projects/my-app "Explain this task"
 ready-for-agents prompt
 ```
 
-| Flag                      | Mô tả                                                |
-| ------------------------- | ---------------------------------------------------- |
-| `[text]`                  | Instruction (tham số vị trí)                         |
-| `--stdin`                 | Đọc instruction từ stdin                             |
-| `--file <path>`           | Đọc instruction từ file                              |
-| `--target <auto\|en\|vi>` | Chọn instruction ngôn ngữ cho phần response          |
-| `--context`               | Chèn section context liên quan từ context-tree       |
-| `--no-context`            | Tắt context lookup                                   |
-| `--compact`               | Render prompt ngắn hơn                               |
-| `--no-compact`            | Render prompt dạng standard                          |
-| `--context-limit <n>`     | Số section context tối đa                            |
-| `--json`                  | In JSON thay vì Markdown                             |
-| `--stats`                 | In thống kê độ dài ra stderr                         |
-| `--cwd <path>`            | Thư mục project dùng để đọc `.ready-for-agents.json` |
+
+| Flag                    | Mô tả                                                |
+| ----------------------- | ---------------------------------------------------- |
+| `[text]`                | Instruction (tham số vị trí)                         |
+| `--stdin`               | Đọc instruction từ stdin                             |
+| `--file <path>`         | Đọc instruction từ file                              |
+| `--target <auto|en|vi>` | Chọn instruction ngôn ngữ cho phần response          |
+| `--context`             | Chèn section context liên quan từ context-tree       |
+| `--no-context`          | Tắt context lookup                                   |
+| `--compact`             | Render prompt ngắn hơn                               |
+| `--no-compact`          | Render prompt dạng standard                          |
+| `--context-limit <n>`   | Số section context tối đa                            |
+| `--json`                | In JSON thay vì Markdown                             |
+| `--stats`               | In thống kê độ dài ra stderr                         |
+| `--cwd <path>`          | Thư mục project dùng để đọc `.ready-for-agents.json` |
+
 
 **Exit code:** `0` khi thành công; `1` khi input rỗng sau normalize.
 
@@ -324,7 +361,7 @@ Nếu bỏ `--target`, `prompt` đọc `prompt.target` trong `.ready-for-agents.
 
 `p` là alias ngắn của `prompt` với default `--context --compact`. Dùng `--no-context` hoặc `--no-compact` nếu muốn tắt.
 
-Spec: [`doc/guide/PROMPT_SPEC.md`](./doc/guide/PROMPT_SPEC.md).
+Spec: `[doc/guide/PROMPT_SPEC.md](./doc/guide/PROMPT_SPEC.md)`.
 
 ### Cấu hình mặc định
 
@@ -427,6 +464,7 @@ ready-for-agents doctor --json
 
 **Các check (khi thư mục hợp lệ):**
 
+
 | Check                                            | `pass`                               | `warn`           | `fail`                               |
 | ------------------------------------------------ | ------------------------------------ | ---------------- | ------------------------------------ |
 | Thư mục project                                  | tồn tại và là directory              | —                | không tồn tại / không phải directory |
@@ -436,6 +474,7 @@ ready-for-agents doctor --json
 | `AGENTS.md`, `PROJECT_CONTEXT.md`, `COMMANDS.md` | có                                   | thiếu            | —                                    |
 | script `dev`, `build`, `test`                    | có                                   | thiếu            | —                                    |
 | `README.md`                                      | có                                   | thiếu            | —                                    |
+
 
 ---
 
@@ -523,6 +562,7 @@ Phân tích **tĩnh** (từ `package.json`, lockfile, folder gốc) — **không
 
 Thứ tự ưu tiên: **lockfile** → field `packageManager` trong `package.json` → mặc định **npm**
 
+
 | Tín hiệu                         | Kết quả                      |
 | -------------------------------- | ---------------------------- |
 | `pnpm-lock.yaml`                 | pnpm                         |
@@ -531,15 +571,18 @@ Thứ tự ưu tiên: **lockfile** → field `packageManager` trong `package.jso
 | `package-lock.json`              | npm                          |
 | `"packageManager": "pnpm@9.0.0"` | pnpm (khi không có lockfile) |
 
+
 ### Stack (có thể kết hợp nhiều lớp)
 
 Mỗi lớp chọn **rule khớp đầu tiên** từ `dependencies` + `devDependencies`. Nhiều lớp có thể cùng xuất hiện (frontend + backend + database).
+
 
 | Lớp      | Nhãn detect (theo thứ tự rule)                                               |
 | -------- | ---------------------------------------------------------------------------- |
 | Frontend | Next.js, Nuxt, React/Vite, Vue/Vite, React (CRA), React, Vue, Svelte         |
 | Backend  | NestJS, Express, Fastify, Koa, Hono                                          |
 | Database | MongoDB/Mongoose, MongoDB, Prisma, TypeORM, PostgreSQL, MySQL, SQLite, Redis |
+
 
 Không khớp rule nào → framework summary mặc định **Node.js**.
 
@@ -549,6 +592,7 @@ Ví dụ full-stack: **React/Vite + Express** với **MongoDB/Mongoose**.
 
 Map các key logic (alias đầu tiên có trong `package.json` được dùng):
 
+
 | Key         | Alias cũng được kiểm tra                 |
 | ----------- | ---------------------------------------- |
 | `dev`       | `start:dev`, `develop`                   |
@@ -557,6 +601,7 @@ Map các key logic (alias đầu tiên có trong `package.json` được dùng):
 | `lint`      | `lint`, `eslint`                         |
 | `typecheck` | `typecheck`, `type-check`, `check:types` |
 | `format`    | `format`, `prettier`, `fmt`              |
+
 
 Cũng liệt kê script liên quan (`dev:client`, `dev:server`, …) nếu có prefix `dev:*` hoặc được gọi trong lệnh `dev`.
 
@@ -569,7 +614,7 @@ Kiểm tra ở root: `src/`, `app/`, `pages/`, `components/`, `lib/`, `tests/`.
 ## Mặc định an toàn
 
 - **Không ghi đè** `AGENTS.md`, `PROJECT_CONTEXT.md`, `COMMANDS.md` trừ khi có `--force`
-- **`--dry-run`** không đụng filesystem
+- `**--dry-run`** không đụng filesystem
 - Bỏ qua thư mục nặng (`node_modules`, `.git`, `dist`, …) khi quét
 - Bỏ qua thư mục cache generated (`.ready-for-agents/`) khi quét
 - Báo lỗi rõ khi thiếu/sai `package.json` hoặc `--cwd` không hợp lệ (`init`, `update`, `doctor`)
@@ -579,7 +624,7 @@ Kiểm tra ở root: `src/`, `app/`, `pages/`, `components/`, `lib/`, `tests/`.
 
 ## Cách hoạt động
 
-**`init`** — detect → sinh Markdown:
+`**init**` — detect → sinh Markdown:
 
 ```mermaid
 flowchart LR
@@ -593,7 +638,9 @@ flowchart LR
   E --> X[".ready-for-agents/context-tree.json"]
 ```
 
-**`doctor`** — validate; `--fix` có thể sửa context files an toàn:
+
+
+`**doctor**` — validate; `--fix` có thể sửa context files an toàn:
 
 ```mermaid
 flowchart LR
@@ -605,8 +652,10 @@ flowchart LR
   M -->|có| O["Generate/refresh context files"]
 ```
 
-**Đặc tả đầy đủ:** [`doc/guide/README.md`](./doc/guide/README.md) (yêu cầu, CLI, mô hình dữ liệu, rule detect, kiến trúc).  
-Chi tiết mã nguồn: [`doc/guide/SRC_WORKFLOW.md`](./doc/guide/SRC_WORKFLOW.md).
+
+
+**Đặc tả đầy đủ:** `[doc/guide/README.md](./doc/guide/README.md)` (yêu cầu, CLI, mô hình dữ liệu, rule detect, kiến trúc).  
+Chi tiết mã nguồn: `[doc/guide/SRC_WORKFLOW.md](./doc/guide/SRC_WORKFLOW.md)`.
 
 ---
 
@@ -639,21 +688,21 @@ Phát hành: [CHANGELOG.md](./CHANGELOG.md) · Publish: [PUBLISH_CHECKLIST.md](.
 
 ## Roadmap
 
-- [x] `ready-for-agents doctor` — kiểm tra project sẵn sàng cho agent (check tĩnh, không ghi file)
-- [x] `doctor --fix` — tạo/refresh context files an toàn
-- [x] `doctor --json` — output JSON cho CI
-- [x] `ready-for-agents prompt` — cấu trúc instruction thô, hỗ trợ `--file` và interactive mode (không AI API)
-- [x] `prompt --target auto|en|vi` — chọn instruction ngôn ngữ cho response
-- [x] Sinh `.cursor/rules` và `CLAUDE.md` tùy chọn
-- [x] `ready-for-agents update` — refresh context sau khi repo thay đổi
-- [x] `.ready-for-agents.json` — default cho optional files, prompt target, index output
-- [x] `ready-for-agents index` — context tree cache gọn cho file agent generated
-- [x] `ready-for-agents query` — chọn section context liên quan trước khi đọc full file
-- [ ] `prompt --style` (v0.2)
-- [ ] `prompt --ai` rewrite tùy chọn (v0.3)
-- [ ] Hỗ trợ Python / FastAPI / Django
-- [ ] GitHub Action đồng bộ context
-- [ ] Tùy chọn tóm tắt bằng AI
+- `ready-for-agents doctor` — kiểm tra project sẵn sàng cho agent (check tĩnh, không ghi file)
+- `doctor --fix` — tạo/refresh context files an toàn
+- `doctor --json` — output JSON cho CI
+- `ready-for-agents prompt` — cấu trúc instruction thô, hỗ trợ `--file` và interactive mode (không AI API)
+- `prompt --target auto|en|vi` — chọn instruction ngôn ngữ cho response
+- Sinh `.cursor/rules` và `CLAUDE.md` tùy chọn
+- `ready-for-agents update` — refresh context sau khi repo thay đổi
+- `.ready-for-agents.json` — default cho optional files, prompt target, index output
+- `ready-for-agents index` — context tree cache gọn cho file agent generated
+- `ready-for-agents query` — chọn section context liên quan trước khi đọc full file
+- `prompt --style` (v0.2)
+- `prompt --ai` rewrite tùy chọn (v0.3)
+- Hỗ trợ Python / FastAPI / Django
+- GitHub Action đồng bộ context
+- Tùy chọn tóm tắt bằng AI
 
 ---
 

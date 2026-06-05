@@ -1,14 +1,37 @@
-# ready-for-agents
+<pre align="center">
+██████╗ ███████╗ █████╗ ██████╗ ██╗   ██╗    ███████╗ ██████╗ ██████╗
+██╔══██╗██╔════╝██╔══██╗██╔══██╗╚██╗ ██╔╝    ██╔════╝██╔═══██╗██╔══██╗
+██████╔╝█████╗  ███████║██║  ██║ ╚████╔╝     █████╗  ██║   ██║██████╔╝
+██╔══██╗██╔══╝  ██╔══██║██║  ██║  ╚██╔╝      ██╔══╝  ██║   ██║██╔══██╗
+██║  ██║███████╗██║  ██║██████╔╝   ██║       ██║     ╚██████╔╝██║  ██║
+╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝    ╚═╝       ╚═╝      ╚═════╝ ╚═╝  ╚═╝
 
-<p align="right">
-  <strong>English</strong> · <a href="./README.vi.md">Tiếng Việt</a>
+ █████╗  ██████╗ ███████╗███╗   ██╗████████╗███████╗
+██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔════╝
+███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║   ███████╗
+██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║   ╚════██║
+██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║   ███████║
+╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
+</pre>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/ready-for-agents"><img src="https://img.shields.io/npm/v/ready-for-agents?style=for-the-badge&label=npm&labelColor=555555&color=CB3837&logo=npm&logoColor=white" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/ready-for-agents"><img src="https://img.shields.io/npm/dm/ready-for-agents?style=for-the-badge&label=npm&labelColor=555555&color=47A248" alt="npm downloads per month"></a>
+  <a href="https://www.npmjs.com/package/ready-for-agents"><img src="https://img.shields.io/node/v/ready-for-agents?style=for-the-badge&label=node&labelColor=555555&color=339933&logo=node.js&logoColor=white" alt="node version"></a>
+  <a href="https://github.com/LeMinhSang2k5/ready-for-agents/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/ready-for-agents?style=for-the-badge&label=license&labelColor=555555&color=brightgreen" alt="MIT license"></a>
+  <a href="https://github.com/LeMinhSang2k5/ready-for-agents"><img src="https://img.shields.io/github/stars/LeMinhSang2k5/ready-for-agents?style=for-the-badge&label=stars&labelColor=555555&color=yellow&logo=github" alt="GitHub stars"></a>
+  <br>
+  <a href="https://github.com/LeMinhSang2k5/ready-for-agents/tree/main/doc/guide"><img src="https://img.shields.io/badge/DOCS-GUIDE-yellow?style=for-the-badge&labelColor=555555" alt="Documentation"></a>
+  <a href="https://github.com/LeMinhSang2k5/ready-for-agents"><img src="https://img.shields.io/badge/GITHUB-REPOSITORY-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
+  <a href="https://github.com/LeMinhSang2k5"><img src="https://img.shields.io/badge/BUILT%20BY-LeMinhSang-purple?style=for-the-badge&labelColor=555555" alt="Built by LeMinhSang"></a>
+  <a href="./README.vi.md"><img src="https://img.shields.io/badge/LANG-TIẾNG%20VIỆT-red?style=for-the-badge&labelColor=555555" alt="Tiếng Việt"></a>
 </p>
+
+---
 
 > **Make any repository AI-agent-ready in 30 seconds.**
 
 A small CLI that scans your Node.js project and generates context files for **Cursor**, **Codex**, **Claude Code**, **Copilot**, and other AI coding agents — so they stop guessing your stack, scripts, and folder layout.
-
-[GitHub repository](https://github.com/LeMinhSang2k5/ready-for-agents) · [npm package](https://www.npmjs.com/package/ready-for-agents)
 
 ---
 
@@ -87,6 +110,7 @@ npx ready-for-agents query "kiểm tra doctor hoạt động đúng chưa" --jso
 
 ### Command map
 
+
 | Command       | Use it when you want to...                              | Writes files?                                   |
 | ------------- | ------------------------------------------------------- | ----------------------------------------------- |
 | `init`        | create context files for a project                      | Yes, unless `--dry-run`                         |
@@ -97,11 +121,13 @@ npx ready-for-agents query "kiểm tra doctor hoạt động đúng chưa" --jso
 | `index`       | build `.ready-for-agents/context-tree.json`             | Yes, unless `--dry-run` or `--json`             |
 | `query`       | select relevant context sections for a task             | No                                              |
 
+
 ---
 
 ## Why this exists
 
 AI agents work best when they already know:
+
 
 | Without context                     | With `ready-for-agents`                 |
 | ----------------------------------- | --------------------------------------- |
@@ -111,11 +137,13 @@ AI agents work best when they already know:
 | Re-explains the repo every session  | `PROJECT_CONTEXT.md` stays in the repo  |
 | Reads every context file every turn | `query` selects relevant sections first |
 
+
 ---
 
 ## What you get
 
 After `init`, your project root can include:
+
 
 | File                                  | Purpose                                                       |
 | ------------------------------------- | ------------------------------------------------------------- |
@@ -126,6 +154,7 @@ After `init`, your project root can include:
 | `CLAUDE.md`                           | Optional Claude Code guidance (`init --claude` or `--all`)    |
 | `.ready-for-agents/context-tree.json` | Compact context tree cache for generated files                |
 | `.ready-for-agents.json`              | Optional project config (`config init`)                       |
+
 
 ```text
 my-app/
@@ -227,6 +256,7 @@ ready-for-agents init --cwd ./my-app --force
 
 ### CLI options
 
+
 | Flag           | Description                                                              |
 | -------------- | ------------------------------------------------------------------------ |
 | `--dry-run`    | Print detected info + full file preview; **does not write** to disk      |
@@ -237,7 +267,9 @@ ready-for-agents init --cwd ./my-app --force
 | `--index`      | Generate `.ready-for-agents/context-tree.json`                           |
 | `--cwd <path>` | Project directory to scan (default: current working directory)           |
 
+
 ### Update options
+
 
 | Flag           | Description                                                              |
 | -------------- | ------------------------------------------------------------------------ |
@@ -250,6 +282,7 @@ ready-for-agents init --cwd ./my-app --force
 | `--all`        | Refresh all optional agent files                                         |
 | `--index`      | Regenerate `.ready-for-agents/context-tree.json`                         |
 | `--cwd <path>` | Project directory to update (default: current working directory)         |
+
 
 Generated files include a small HTML comment marker with a content hash. `update` uses that marker to tell generated files apart from files you wrote by hand, and skips files whose marker hash no longer matches the file body.
 
@@ -267,6 +300,7 @@ ready-for-agents doctor --cwd /Users/you/projects/my-app
 ready-for-agents doctor --json
 ```
 
+
 | Flag           | Description                                                     |
 | -------------- | --------------------------------------------------------------- |
 | `--cwd <path>` | Project directory to check (default: current working directory) |
@@ -278,6 +312,7 @@ ready-for-agents doctor --json
 | `--claude`     | With `--fix`, include `CLAUDE.md`                               |
 | `--all`        | With `--fix`, include all optional agent files                  |
 | `--index`      | With `--fix`, generate `.ready-for-agents/context-tree.json`    |
+
 
 **Exit code:** `0` when there are no failures; `1` when any check has `fail` status (e.g. missing `package.json`).
 
@@ -301,20 +336,22 @@ ready-for-agents prompt --cwd /Users/you/projects/my-app "Explain this task"
 ready-for-agents prompt
 ```
 
-| Flag                      | Description                                             |
-| ------------------------- | ------------------------------------------------------- |
-| `[text]`                  | Instruction (positional)                                |
-| `--stdin`                 | Read instruction from stdin                             |
-| `--file <path>`           | Read instruction from file                              |
-| `--target <auto\|en\|vi>` | Set the response language instruction                   |
-| `--context`               | Include relevant context sections from context-tree     |
-| `--no-context`            | Disable relevant context lookup                         |
-| `--compact`               | Render a shorter prompt                                 |
-| `--no-compact`            | Render the standard prompt style                        |
-| `--context-limit <n>`     | Maximum relevant context sections                       |
-| `--json`                  | Print JSON instead of Markdown                          |
-| `--stats`                 | Print size stats on stderr                              |
-| `--cwd <path>`            | Project directory used to read `.ready-for-agents.json` |
+
+| Flag                  | Description                                             |
+| --------------------- | ------------------------------------------------------- |
+| `[text]`              | Instruction (positional)                                |
+| `--stdin`             | Read instruction from stdin                             |
+| `--file <path>`       | Read instruction from file                              |
+| `--target <auto       | en                                                      |
+| `--context`           | Include relevant context sections from context-tree     |
+| `--no-context`        | Disable relevant context lookup                         |
+| `--compact`           | Render a shorter prompt                                 |
+| `--no-compact`        | Render the standard prompt style                        |
+| `--context-limit <n>` | Maximum relevant context sections                       |
+| `--json`              | Print JSON instead of Markdown                          |
+| `--stats`             | Print size stats on stderr                              |
+| `--cwd <path>`        | Project directory used to read `.ready-for-agents.json` |
+
 
 **Exit code:** `0` on success; `1` when input is empty after normalization.
 
@@ -324,7 +361,7 @@ If `--target` is omitted, `prompt` uses `prompt.target` from `.ready-for-agents.
 
 `p` is a short alias for `prompt` with `--context --compact` defaults. Use `--no-context` or `--no-compact` to opt out.
 
-Spec: [`doc/guide/PROMPT_SPEC.md`](./doc/guide/PROMPT_SPEC.md).
+Spec: `[doc/guide/PROMPT_SPEC.md](./doc/guide/PROMPT_SPEC.md)`.
 
 ### Configure defaults
 
@@ -427,6 +464,7 @@ ready-for-agents doctor --json
 
 **Checks (when the directory is valid):**
 
+
 | Check                                            | `pass`                             | `warn`            | `fail`                     |
 | ------------------------------------------------ | ---------------------------------- | ----------------- | -------------------------- |
 | Project directory                                | exists and is a directory          | —                 | missing or not a directory |
@@ -436,6 +474,7 @@ ready-for-agents doctor --json
 | `AGENTS.md`, `PROJECT_CONTEXT.md`, `COMMANDS.md` | found                              | missing           | —                          |
 | `dev`, `build`, `test` scripts                   | found                              | missing           | —                          |
 | `README.md`                                      | found                              | missing           | —                          |
+
 
 ---
 
@@ -523,6 +562,7 @@ Detection is **static** (from `package.json`, lockfiles, and root folders) — n
 
 Priority: **lockfile** → `package.json` `packageManager` field → **npm** fallback
 
+
 | Signal                           | Result                |
 | -------------------------------- | --------------------- |
 | `pnpm-lock.yaml`                 | pnpm                  |
@@ -531,15 +571,18 @@ Priority: **lockfile** → `package.json` `packageManager` field → **npm** fal
 | `package-lock.json`              | npm                   |
 | `"packageManager": "pnpm@9.0.0"` | pnpm (if no lockfile) |
 
+
 ### Stack (can combine layers)
 
 Each layer picks the **first matching rule** from `dependencies` + `devDependencies`. Multiple layers can appear together (e.g. frontend + backend + database).
+
 
 | Layer    | Detected labels (in rule order)                                              |
 | -------- | ---------------------------------------------------------------------------- |
 | Frontend | Next.js, Nuxt, React/Vite, Vue/Vite, React (CRA), React, Vue, Svelte         |
 | Backend  | NestJS, Express, Fastify, Koa, Hono                                          |
 | Database | MongoDB/Mongoose, MongoDB, Prisma, TypeORM, PostgreSQL, MySQL, SQLite, Redis |
+
 
 If nothing matches, framework summary falls back to **Node.js**.
 
@@ -548,6 +591,7 @@ Full-stack example: **React/Vite + Express** with **MongoDB/Mongoose**.
 ### Scripts
 
 Maps these logical script keys (first matching alias in `package.json` wins):
+
 
 | Key         | Aliases also checked                     |
 | ----------- | ---------------------------------------- |
@@ -558,7 +602,8 @@ Maps these logical script keys (first matching alias in `package.json` wins):
 | `typecheck` | `typecheck`, `type-check`, `check:types` |
 | `format`    | `format`, `prettier`, `fmt`              |
 
-Also lists related scripts (e.g. `dev:client`, `dev:server`) when they exist as `dev:*` or are referenced inside the `dev` command.
+
+Also lists related scripts (e.g. `dev:client`, `dev:server`) when they exist as `dev:`* or are referenced inside the `dev` command.
 
 ### Important folders
 
@@ -569,7 +614,7 @@ Checks for: `src/`, `app/`, `pages/`, `components/`, `lib/`, `tests/` (at projec
 ## Safety defaults
 
 - **Never overwrites** existing `AGENTS.md`, `PROJECT_CONTEXT.md`, or `COMMANDS.md` unless you pass `--force`
-- **`--dry-run`** never touches the filesystem
+- `**--dry-run`** never touches the filesystem
 - Skips heavy directories (`node_modules`, `.git`, `dist`, …) when scanning
 - Skips the generated context cache directory (`.ready-for-agents/`) when scanning
 - Clear errors for missing/invalid `package.json` or bad `--cwd` (`init` and `doctor`)
@@ -579,7 +624,7 @@ Checks for: `src/`, `app/`, `pages/`, `components/`, `lib/`, `tests/` (at projec
 
 ## How it works
 
-**`init`** — detect → generate Markdown:
+`**init`** — detect → generate Markdown:
 
 ```mermaid
 flowchart LR
@@ -593,7 +638,9 @@ flowchart LR
   E --> X[".ready-for-agents/context-tree.json"]
 ```
 
-**`doctor`** — validate; `--fix` can safely repair context files:
+
+
+`**doctor**` — validate; `--fix` can safely repair context files:
 
 ```mermaid
 flowchart LR
@@ -605,8 +652,10 @@ flowchart LR
   M -->|yes| O["Generate/refresh context files"]
 ```
 
-**Full specs:** [`doc/guide/README.md`](./doc/guide/README.md) (requirements, CLI, data model, detection rules, architecture).  
-Implementation walkthrough: [`doc/guide/SRC_WORKFLOW.md`](./doc/guide/SRC_WORKFLOW.md).
+
+
+**Full specs:** `[doc/guide/README.md](./doc/guide/README.md)` (requirements, CLI, data model, detection rules, architecture).  
+Implementation walkthrough: `[doc/guide/SRC_WORKFLOW.md](./doc/guide/SRC_WORKFLOW.md)`.
 
 ---
 
@@ -639,21 +688,21 @@ Release: [CHANGELOG.md](./CHANGELOG.md) · Publish: [PUBLISH_CHECKLIST.md](./PUB
 
 ## Roadmap
 
-- [x] `ready-for-agents doctor` — validate project readiness (static checks, no writes)
-- [x] `doctor --fix` — safely generate/refresh context files
-- [x] `doctor --json` — machine-readable output for CI
-- [x] `ready-for-agents prompt` — structure rough instructions, --file, and interactive mode (no AI API)
-- [x] `prompt --target auto|en|vi` — choose response language instruction
-- [x] `.cursor/rules` and `CLAUDE.md` optional generators
-- [x] `ready-for-agents update` — refresh generated context files after repo changes
-- [x] `.ready-for-agents.json` — project defaults for optional files, prompt target, and index output
-- [x] `ready-for-agents index` — compact context tree cache for generated agent files
-- [x] `ready-for-agents query` — select relevant context sections before full reads
-- [ ] `prompt --style` (v0.2)
-- [ ] `prompt --ai` opt-in rewrite (v0.3)
-- [ ] Python / FastAPI / Django support
-- [ ] GitHub Action to keep context in sync
-- [ ] Optional AI-enhanced summaries
+- `ready-for-agents doctor` — validate project readiness (static checks, no writes)
+- `doctor --fix` — safely generate/refresh context files
+- `doctor --json` — machine-readable output for CI
+- `ready-for-agents prompt` — structure rough instructions, --file, and interactive mode (no AI API)
+- `prompt --target auto|en|vi` — choose response language instruction
+- `.cursor/rules` and `CLAUDE.md` optional generators
+- `ready-for-agents update` — refresh generated context files after repo changes
+- `.ready-for-agents.json` — project defaults for optional files, prompt target, and index output
+- `ready-for-agents index` — compact context tree cache for generated agent files
+- `ready-for-agents query` — select relevant context sections before full reads
+- `prompt --style` (v0.2)
+- `prompt --ai` opt-in rewrite (v0.3)
+- Python / FastAPI / Django support
+- GitHub Action to keep context in sync
+- Optional AI-enhanced summaries
 
 ---
 
