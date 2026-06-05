@@ -60,7 +60,7 @@ export const OUTPUT_FILES = [
   "AGENTS.md",
   "PROJECT_CONTEXT.md",
   "COMMANDS.md",
-  ".cursor/rules/agent-context-kit.mdc",
+  ".cursor/rules/ready-for-agents.mdc",
   "CLAUDE.md",
 ] as const;
 

@@ -1,4 +1,4 @@
-# Tài liệu đặc tả — agent-context-kit
+# Tài liệu đặc tả — ready-for-agents
 
 Bộ tài liệu giúp hiểu **hệ thống** (yêu cầu, CLI, dữ liệu, kiến trúc) và **mã nguồn** (workflow từng file).
 
@@ -19,12 +19,14 @@ Bộ tài liệu giúp hiểu **hệ thống** (yêu cầu, CLI, dữ liệu, ki
 | Thay đổi code ở đâu               | [SRC_WORKFLOW.md](./SRC_WORKFLOW.md)                 |
 | Test feature thế nào              | [TEST_STRATEGY.md](./TEST_STRATEGY.md)               |
 
-| Lệnh     | Vai trò                                               | Spec liên quan                                                                                          |
-| -------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `init`   | Sinh context files lần đầu                            | [CLI_SPEC](./CLI_SPEC.md#2-subcommand-init), [GENERATED_FILES_SPEC](./GENERATED_FILES_SPEC.md)          |
-| `update` | Refresh context files đã generated                    | [CLI_SPEC](./CLI_SPEC.md#3-subcommand-update), [DATA_MODEL](./DATA_MODEL.md#update-check-model)         |
-| `doctor` | Kiểm tra readiness; `--fix` sửa context files an toàn | [CLI_SPEC](./CLI_SPEC.md#4-subcommand-doctor), [REQUIREMENTS](./REQUIREMENTS.md#fr-doctor--lệnh-doctor) |
-| `prompt` | Chuẩn hóa instruction thô                             | [CLI_SPEC](./CLI_SPEC.md#5-subcommand-prompt), [PROMPT_SPEC](./PROMPT_SPEC.md)                          |
+| Lệnh          | Vai trò                                               | Spec liên quan                                                                                          |
+| ------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `init`        | Sinh context files lần đầu                            | [CLI_SPEC](./CLI_SPEC.md#2-subcommand-init), [GENERATED_FILES_SPEC](./GENERATED_FILES_SPEC.md)          |
+| `update`      | Refresh context files đã generated                    | [CLI_SPEC](./CLI_SPEC.md#3-subcommand-update), [DATA_MODEL](./DATA_MODEL.md#update-check-model)         |
+| `doctor`      | Kiểm tra readiness; `--fix` sửa context files an toàn | [CLI_SPEC](./CLI_SPEC.md#4-subcommand-doctor), [REQUIREMENTS](./REQUIREMENTS.md#fr-doctor--lệnh-doctor) |
+| `prompt`      | Chuẩn hóa instruction thô                             | [CLI_SPEC](./CLI_SPEC.md#5-subcommand-prompt), [PROMPT_SPEC](./PROMPT_SPEC.md)                          |
+| `config init` | Tạo `.ready-for-agents.json`                          | [CLI_SPEC](./CLI_SPEC.md#6-subcommand-config-init), [DATA_MODEL](./DATA_MODEL.md#6-config-model)        |
+| `index`       | Sinh context tree cache                               | [CLI_SPEC](./CLI_SPEC.md#7-subcommand-index), [DATA_MODEL](./DATA_MODEL.md#7-context-tree-model)        |
 
 ---
 
@@ -53,11 +55,11 @@ Bộ tài liệu giúp hiểu **hệ thống** (yêu cầu, CLI, dữ liệu, ki
 
 ### Giao diện & dữ liệu
 
-| File                               | Nội dung                                                       |
-| ---------------------------------- | -------------------------------------------------------------- |
-| [CLI_SPEC.md](./CLI_SPEC.md)       | Subcommands, flags, exit code, format output                   |
-| [PROMPT_SPEC.md](./PROMPT_SPEC.md) | Lệnh `prompt`: pipeline, normalize, JSON                       |
-| [DATA_MODEL.md](./DATA_MODEL.md)   | `ProjectContext`, `DoctorResult`, `PromptBrief`, luồng dữ liệu |
+| File                               | Nội dung                                                               |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| [CLI_SPEC.md](./CLI_SPEC.md)       | Subcommands, flags, exit code, format output                           |
+| [PROMPT_SPEC.md](./PROMPT_SPEC.md) | Lệnh `prompt`: pipeline, normalize, JSON                               |
+| [DATA_MODEL.md](./DATA_MODEL.md)   | `ProjectContext`, config, `ContextTree`, `DoctorResult`, `PromptBrief` |
 
 ### Domain & output
 
@@ -105,6 +107,7 @@ Tham khảo khi cần: [GLOSSARY.md](./GLOSSARY.md), [TEST_STRATEGY.md](./TEST_S
 2. `validateInitTarget` → `readProject()` → `ProjectContext`
 3. `generateAllFiles()` → 3 file Markdown
 4. `writeGeneratedFiles()` hoặc dry-run preview
+5. Nếu index bật: `buildContextTree()` → `.ready-for-agents/context-tree.json`
 
 ### `doctor` — kiểm tra
 
@@ -119,14 +122,21 @@ Tham khảo khi cần: [GLOSSARY.md](./GLOSSARY.md), [TEST_STRATEGY.md](./TEST_S
 3. Dùng generated marker để phân loại `upToDate` / `outdated` / `missing` / `untracked`
 4. `--check` / `--json` trả readiness cho CI; write mode chỉ overwrite tracked files
 
+### `index` — context tree cache
+
+1. `cli.ts` → `runIndex()`
+2. `validateInitTarget()` → `readProject()`
+3. `buildContextTree()` đọc các generated files cố định
+4. Ghi `.ready-for-agents/context-tree.json`, hoặc in JSON/dry-run
+
 Chi tiết code: [SRC_WORKFLOW.md](./SRC_WORKFLOW.md).
 
 ---
 
 ## Trạng thái tài liệu
 
-| Phiên bản code | Tài liệu                                                   |
-| -------------- | ---------------------------------------------------------- |
-| v0.1.x         | `init` + `update` + `doctor` + `prompt` shipped; 247 tests |
+| Phiên bản code | Tài liệu                                                                |
+| -------------- | ----------------------------------------------------------------------- |
+| v0.2.x         | `init` + `update` + `doctor` + `prompt` + `config` + `index`; 256 tests |
 
 Khi đổi behavior: cập nhật **REQUIREMENTS** + **CLI_SPEC** (+ detector/generated spec nếu liên quan) trong cùng PR với code.

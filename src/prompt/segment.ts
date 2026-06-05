@@ -17,8 +17,17 @@ const DOT_PLACEHOLDERS: Array<{
   },
 ];
 
-const COMMAND_PATTERN =
-  /`([^`]+)`|\b(?:pnpm|npm|yarn|bun)\s+(?:run\s+)?[\w:./-]+(?:\s+--[\w-]+(?:[=\s][^\s]+)?)*|\bagent-context-kit\s+[\w:-]+(?:\s+--[\w-]+(?:[=\s][^\s]+)?)*|\bdoctor(?:\s+--[\w-]+(?:[=\s][^\s]+)?)+|\b(?:vitest|jest)\s+[\w:./-]+/gi;
+const FLAG_PATTERN = String.raw`--(?:cwd|output|target|file|tree|limit|context-limit)\s+\S+|--[\w-]+(?:=\S+)?`;
+const COMMAND_PATTERN = new RegExp(
+  [
+    String.raw`` + "`([^`]+)`",
+    String.raw`\b(?:pnpm|npm|yarn|bun)\s+(?:run\s+)?[\w:./-]+(?:\s+(?:${FLAG_PATTERN}))*`,
+    String.raw`\bready-for-agents\s+[\w:-]+(?:\s+(?:${FLAG_PATTERN}))*`,
+    String.raw`\bdoctor(?:\s+(?:${FLAG_PATTERN}))+`,
+    String.raw`\b(?:vitest|jest)\s+[\w:./-]+`,
+  ].join("|"),
+  "gi",
+);
 
 function protectDottedTokens(text: string): {
   protectedText: string;

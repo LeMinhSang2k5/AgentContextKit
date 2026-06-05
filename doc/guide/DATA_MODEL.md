@@ -9,7 +9,7 @@ Nguồn truth trong code: `src/types.ts`.
 ```mermaid
 flowchart LR
   subgraph disk [Project on disk]
-    PKG[package.json]
+    PKG["package.json"]
     LOCK[lockfiles]
     FOLD[root folders]
   end
@@ -21,6 +21,7 @@ flowchart LR
     RP --> PC[ProjectContext]
     PC --> GEN[GeneratedFiles]
     GEN --> WR[writeGeneratedFiles]
+    PC --> TREE[ContextTree]
   end
 
   subgraph doctor_flow [doctor]
@@ -99,7 +100,7 @@ type GeneratedFiles = {
   "AGENTS.md": string;
   "PROJECT_CONTEXT.md": string;
   "COMMANDS.md": string;
-  ".cursor/rules/agent-context-kit.mdc"?: string;
+  ".cursor/rules/ready-for-agents.mdc"?: string;
   "CLAUDE.md"?: string;
 };
 
@@ -107,7 +108,7 @@ const OUTPUT_FILES = [
   "AGENTS.md",
   "PROJECT_CONTEXT.md",
   "COMMANDS.md",
-  ".cursor/rules/agent-context-kit.mdc",
+  ".cursor/rules/ready-for-agents.mdc",
   "CLAUDE.md",
 ] as const;
 type OutputFile = (typeof OUTPUT_FILES)[number];
@@ -171,7 +172,156 @@ Write mode của `update`:
 
 ---
 
-## 6. Doctor model
+## 6. Config model
+
+Nguồn truth: `src/config/types.ts`.
+
+```ts
+type ReadyForAgentsConfig = {
+  $schema?: string;
+  files?: {
+    cursor?: boolean;
+    claude?: boolean;
+    all?: boolean;
+    index?: boolean;
+  };
+  doctor?: {
+    fix?: {
+      cursor?: boolean;
+      claude?: boolean;
+      all?: boolean;
+      force?: boolean;
+      index?: boolean;
+    };
+  };
+  prompt?: {
+    target?: "auto" | "en" | "vi";
+    context?: boolean;
+    style?: "standard" | "compact";
+    contextLimit?: number;
+  };
+  index?: {
+    output?: string;
+  };
+};
+```
+
+Resolved form (`ResolvedReadyForAgentsConfig`) luôn có boolean/string đầy đủ và dùng fallback:
+
+- `files.index`: `true`
+- `doctor.fix.index`: `true`
+- `prompt.target`: `auto`
+- `prompt.context`: `false`
+- `prompt.style`: `standard`
+- `prompt.contextLimit`: `5`
+- `index.output`: `.ready-for-agents/context-tree.json`
+
+Config primary: `.ready-for-agents.json`.
+
+Legacy config `.agent-context-kit.json` vẫn được đọc nếu primary không tồn tại.
+
+---
+
+## 7. Context tree model
+
+Nguồn truth: `src/indexer/context-tree.ts`.
+
+```ts
+type ContextTree = {
+  version: 1;
+  tool: "ready-for-agents";
+  project: {
+    name: string;
+    cwd: string;
+    packageManager: string;
+  };
+  summary: {
+    filesIndexed: number;
+    filesMissing: number;
+    sectionsIndexed: number;
+    tokensEstimate: number;
+  };
+  files: ContextTreeFile[];
+};
+
+type ContextTreeFile = {
+  path: OutputFile;
+  kind: "core" | "cursor" | "claude";
+  exists: boolean;
+  hash?: string;
+  bytes?: number;
+  tokensEstimate: number;
+  sections: ContextTreeSection[];
+};
+
+type ContextTreeSection = {
+  id: string;
+  heading: string;
+  slug: string;
+  anchor: string;
+  level: number;
+  lineStart: number;
+  lineEnd: number;
+  hash: string;
+  words: number;
+  tokensEstimate: number;
+  keywords: string[];
+  commands: string[];
+  importance: "high" | "medium" | "low";
+  summary: string;
+};
+```
+
+`ready-for-agents index` ghi JSON này vào `.ready-for-agents/context-tree.json` mặc định.
+
+Mục tiêu: agent/CI có thể đọc tree nhỏ trước, biết file nào tồn tại, section nào có nội dung, hash nào thay đổi, section nào quan trọng, command nào liên quan, và ước lượng token nào đáng đọc tiếp.
+
+---
+
+## 8. Query model
+
+Nguồn truth: `src/query/select.ts`, `src/commands/query.ts`.
+
+```ts
+type QueryMatch = {
+  file: ContextTreeFile["path"];
+  sectionId: string;
+  heading: string;
+  anchor: string;
+  lineStart: number;
+  lineEnd: number;
+  score: number;
+  tokensEstimate: number;
+  importance: ContextTreeSection["importance"];
+  summary: string;
+  commands: string[];
+  reasons: string[];
+};
+
+type QueryJsonOutput =
+  | {
+      ok: true;
+      cwd: string;
+      query: string;
+      source: "cache" | "live";
+      treePath: string;
+      summary: ContextTree["summary"];
+      matches: QueryMatch[];
+    }
+  | {
+      ok: false;
+      cwd: string;
+      query: string;
+      error: string;
+      matches: [];
+    };
+```
+
+`query` không ghi file. Nếu cache tree tồn tại thì dùng `source: "cache"`; nếu chưa có cache thì scan live các generated context files hiện có và trả `source: "live"`.
+
+---
+
+## 9. Doctor model
 
 ```ts
 type DoctorCheckStatus = "pass" | "warn" | "fail";
@@ -226,7 +376,12 @@ Khi có `--fix --json`, JSON doctor output có thêm `fix`:
 
 ```ts
 type DoctorFixJsonOutput =
-  | { ran: false; ok: false; reason: "critical-failure" }
+  | {
+      ran: false;
+      ok: false;
+      reason: "critical-failure" | "config-error";
+      error?: string;
+    }
   | {
       ran: true;
       mode: "dry-run";
@@ -235,6 +390,7 @@ type DoctorFixJsonOutput =
       wouldGenerate: OutputFile[];
       wouldOverwrite: OutputFile[];
       wouldSkipUntracked: OutputFile[];
+      wouldGenerateIndex?: string;
     }
   | {
       ran: true;
@@ -243,12 +399,13 @@ type DoctorFixJsonOutput =
       created: OutputFile[];
       overwritten: OutputFile[];
       skippedUntracked: OutputFile[];
+      index?: { output: string; written: boolean };
     };
 ```
 
 ---
 
-## 7. Package manager resolution
+## 9. Package manager resolution
 
 ```ts
 type PackageManager = "npm" | "pnpm" | "yarn" | "bun";
@@ -264,7 +421,7 @@ type ResolvedPackageManager = {
 
 ---
 
-## 8. `PromptBrief` (lệnh `prompt`)
+## 10. `PromptBrief` (lệnh `prompt`)
 
 Nguồn truth: `src/prompt/types.ts`.
 
@@ -278,13 +435,30 @@ type PromptIntent =
   | "general";
 
 type PromptTarget = "auto" | "en" | "vi";
+type PromptStyle = "standard" | "compact";
+
+type PromptContextReference = {
+  file: string;
+  heading: string;
+  anchor: string;
+  lineStart: number;
+  lineEnd: number;
+  summary: string;
+  tokensEstimate: number;
+  commands: string[];
+  reasons: string[];
+};
 
 type PromptBrief = {
   source: PromptSource;
   target: PromptTarget;
+  style: PromptStyle;
   original: string;
   intent: PromptIntent;
   task: string;
+  relevantContext: PromptContextReference[];
+  contextSource?: "cache" | "live";
+  contextTreePath?: string;
   context: string[];
   requirements: string[];
   constraints: string[];
@@ -297,13 +471,13 @@ type PromptBrief = {
 
 **Luồng:** `readPromptInput` → `normalize` → `segment` → `classify` → `extract` → `render`.
 
-**JSON CLI (`--json`):** `PromptJsonOutput` (có `target`, `intent`; không `source`, `original`, `stats`).
+**JSON CLI (`--json`):** `PromptJsonOutput` (có `target`, `style`, `intent`, `relevantContext`; không `source`, `original`, `stats`).
 
 Chi tiết: [PROMPT_SPEC.md](./PROMPT_SPEC.md).
 
 ---
 
-## 9. Validation errors (init)
+## 11. Validation errors
 
 `src/fs/validate.ts`:
 
@@ -319,27 +493,35 @@ Chi tiết: [PROMPT_SPEC.md](./PROMPT_SPEC.md).
 
 ---
 
-## 10. Public exports (`index.ts`)
+## 12. Public exports (`index.ts`)
 
-| Export                                                           | Module                |
-| ---------------------------------------------------------------- | --------------------- |
-| `runInit`                                                        | `commands/init.js`    |
-| `runDoctor`, `DoctorOptions`                                     | `commands/doctor.js`  |
-| `runPrompt`, `buildPromptFromText`                               | `commands/prompt.js`  |
-| `runUpdate`, `checkGeneratedFiles`, `writeUpdateFiles`           | `commands/update.js`  |
-| `normalizePromptText`, `extractPromptBrief`, `renderPromptBrief` | `prompt/*`            |
-| `runDoctorChecks`, `formatScore`, `hasCriticalFailure`           | `doctor/*`            |
-| `readProject`, `resolveProjectCwd`, `validateInitTarget`         | `fs/read-project.js`  |
-| `generateAllFiles`                                               | `generators/index.js` |
-| Detectors                                                        | `detectors/*`         |
-| Types                                                            | `types.js`            |
+| Export                                                           | Module                    |
+| ---------------------------------------------------------------- | ------------------------- |
+| `runInit`                                                        | `commands/init.js`        |
+| `runUpdate`, `checkGeneratedFiles`, `writeUpdateFiles`           | `commands/update.js`      |
+| `runDoctor`, `DoctorOptions`                                     | `commands/doctor.js`      |
+| `runPrompt`, `buildPromptFromText`                               | `commands/prompt.js`      |
+| `runIndex`, `IndexOptions`                                       | `commands/index.js`       |
+| `runQuery`, `QueryOptions`, `QueryJsonOutput`                    | `commands/query.js`       |
+| `runConfigInit`, `ConfigInitOptions`                             | `commands/config.js`      |
+| `readReadyForAgentsConfig`, config constants/types               | `config/*`                |
+| `buildContextTree`, `writeContextTree`, context tree types       | `indexer/context-tree.js` |
+| `selectContextSections`, query types                             | `query/select.js`         |
+| `normalizePromptText`, `extractPromptBrief`, `renderPromptBrief` | `prompt/*`                |
+| `runDoctorChecks`, `formatScore`, `hasCriticalFailure`           | `doctor/*`                |
+| `readProject`, `resolveProjectCwd`, `validateInitTarget`         | `fs/read-project.js`      |
+| `generateAllFiles`                                               | `generators/index.js`     |
+| Detectors                                                        | `detectors/*`             |
+| Types                                                            | `types.js`                |
 
 CLI không bắt buộc import `index.ts`; dùng `cli.ts` trực tiếp.
 
 ---
 
-## 11. Không lưu trữ
+## 13. Lưu trữ
 
-- Không database / cache giữa lần chạy.
-- Không file config user (`~/.agent-context-kit`).
+- Không database.
+- Không user-level config (`~/.ready-for-agents`).
+- Project-level config: `.ready-for-agents.json`.
+- Project-level generated cache: `.ready-for-agents/context-tree.json`.
 - Không state trong memory ngoài một lần invoke CLI.

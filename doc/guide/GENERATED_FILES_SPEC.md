@@ -1,6 +1,8 @@
 # Đặc tả file sinh ra (Generated Files)
 
-Ba file Markdown core tại **root** project target. `init` cũng có thể sinh file agent-native tùy chọn cho Cursor và Claude Code. `doctor` hiện chỉ kiểm tra sự tồn tại của 3 file core (warn nếu thiếu).
+Ba file Markdown core tại **root** project target. `init` cũng có thể sinh file agent-native tùy chọn cho Cursor và Claude Code, đồng thời sinh context tree cache `.ready-for-agents/context-tree.json` khi index bật.
+
+`doctor` hiện chỉ kiểm tra sự tồn tại của 3 file core (warn nếu thiếu). `doctor --fix` có thể tạo/refresh core, optional files, và context tree tùy config/flag.
 
 Constants: `OUTPUT_FILES` trong `src/types.ts`.
 
@@ -20,7 +22,7 @@ Constants: `OUTPUT_FILES` trong `src/types.ts`.
 Mỗi file generated kết thúc bằng một HTML comment marker:
 
 ```md
-<!-- agent-context-kit:generated file="<output-file>" hash="<sha256-prefix>" -->
+<!-- ready-for-agents:generated file="<output-file>" hash="<sha256-prefix>" -->
 ```
 
 Quy tắc:
@@ -52,6 +54,7 @@ Quy tắc:
 | ## Project Goal             | `ctx.name`, `stackFrameworkDisplay` |
 | ## How To Work In This Repo | PM label, stack lines, folders      |
 | ### Important Folders       | `ctx.folders`                       |
+| ## Agent Context Workflow   | Tree/query-first agent workflow     |
 | ## Important Rules          | Static + conditional README hint    |
 | ## Files To Avoid Editing   | Lockfiles, dist, context files      |
 | ## Testing Expectations     | `formatTestingExpectations(ctx)`    |
@@ -84,17 +87,18 @@ không cả hai → hỏi user cách verify
 
 ### Sections bắt buộc
 
-| Section               | Nội dung                                                            |
-| --------------------- | ------------------------------------------------------------------- |
-| ## Project Name       | `` `ctx.name` ``                                                    |
-| ## Stack              | Frontend / Backend / Database subsections + evidence                |
-| **Summary**           | Một dòng tóm tắt framework + database                               |
-| ## Package Manager    | Label có source                                                     |
-| ## Framework          | `stackFrameworkSummary` hoặc Node.js                                |
-| ## Database           | layer hoặc Not detected                                             |
-| ### Important Folders | bullet folders                                                      |
-| ## Dependencies       | dependencies + devDependencies (max 15 + “and N more”)              |
-| ## Notes              | Dynamic bullets (README, fallback PM, backend hint, generated note) |
+| Section                | Nội dung                                                            |
+| ---------------------- | ------------------------------------------------------------------- |
+| ## Project Name        | `` `ctx.name` ``                                                    |
+| ## Stack               | Frontend / Backend / Database subsections + evidence                |
+| **Summary**            | Một dòng tóm tắt framework + database                               |
+| ## Package Manager     | Label có source                                                     |
+| ## Framework           | `stackFrameworkSummary` hoặc Node.js                                |
+| ## Database            | layer hoặc Not detected                                             |
+| ### Important Folders  | bullet folders                                                      |
+| ## Agent Context Index | Vai trò của AGENTS/PROJECT/COMMANDS/context-tree                    |
+| ## Dependencies        | dependencies + devDependencies (max 15 + “and N more”)              |
+| ## Notes               | Dynamic bullets (README, fallback PM, backend hint, generated note) |
 
 ### Notes điều kiện
 
@@ -115,16 +119,17 @@ không cả hai → hỏi user cách verify
 
 ### Sections bắt buộc
 
-| Section        | Nội dung                                  |
-| -------------- | ----------------------------------------- |
-| Title + intro  | `ctx.name`                                |
-| ## Setup       | `installBlock(packageManager)`            |
-| ## Development | `sectionForScript(dev)` + related scripts |
-| ## Build       | build                                     |
-| ## Test        | test                                      |
-| ## Lint        | lint                                      |
-| ## Typecheck   | typecheck                                 |
-| ## Format      | format                                    |
+| Section          | Nội dung                                     |
+| ---------------- | -------------------------------------------- |
+| Title + intro    | `ctx.name`                                   |
+| ## Setup         | `installBlock(packageManager)`               |
+| ## Development   | `sectionForScript(dev)` + related scripts    |
+| ## Build         | build                                        |
+| ## Test          | test                                         |
+| ## Lint          | lint                                         |
+| ## Typecheck     | typecheck                                    |
+| ## Format        | format                                       |
+| ## Agent Context | `ready-for-agents query` và `index` workflow |
 
 ### Section script pattern
 
@@ -153,7 +158,7 @@ Thiếu file → **warn**, không fail (trừ khi thiếu package.json).
 
 ## 6. Optional agent-native files
 
-### `.cursor/rules/agent-context-kit.mdc`
+### `.cursor/rules/ready-for-agents.mdc`
 
 **Flag:** `init --cursor` hoặc `init --all`
 
@@ -167,7 +172,84 @@ Thiếu file → **warn**, không fail (trừ khi thiếu package.json).
 
 ---
 
-## 7. Write semantics
+## 7. Context tree cache
+
+### `.ready-for-agents/context-tree.json`
+
+**Command:** `index`, hoặc tự động qua `init` / `update` / `doctor --fix` khi index bật.
+
+**Mục đích:** Cache machine-readable giúp agent đọc nhanh cấu trúc các file generated trước khi quyết định section nào cần mở đầy đủ.
+
+Schema rút gọn:
+
+```ts
+type ContextTree = {
+  version: 1;
+  tool: "ready-for-agents";
+  project: {
+    name: string;
+    cwd: string;
+    packageManager: string;
+  };
+  summary: {
+    filesIndexed: number;
+    filesMissing: number;
+    sectionsIndexed: number;
+    tokensEstimate: number;
+  };
+  files: Array<{
+    path: OutputFile;
+    kind: "core" | "cursor" | "claude";
+    exists: boolean;
+    hash?: string;
+    bytes?: number;
+    tokensEstimate: number;
+    sections: Array<{
+      id: string;
+      heading: string;
+      slug: string;
+      anchor: string;
+      level: number;
+      lineStart: number;
+      lineEnd: number;
+      hash: string;
+      words: number;
+      tokensEstimate: number;
+      keywords: string[];
+      commands: string[];
+      importance: "high" | "medium" | "low";
+      summary: string;
+    }>;
+  }>;
+};
+```
+
+Quy tắc:
+
+- JSON pretty-print 2 spaces, UTF-8, newline cuối file.
+- Không có generated marker HTML vì đây là JSON cache.
+- `hash` là SHA-256 prefix 16 ký tự.
+- `id` được tạo từ file path + heading + line start để tránh trùng heading.
+- `anchor`, `lineStart`, `lineEnd`, `summary`, `keywords`, `commands` là dữ liệu chính cho `ready-for-agents query`.
+- Nếu file chưa tồn tại: `exists: false`, `sections: []`.
+
+---
+
+## 8. Config file
+
+### `.ready-for-agents.json`
+
+**Command:** `config init`.
+
+**Mục đích:** Lưu default project để giảm việc gõ flag lặp lại.
+
+`config init` không tạo `.agent-context-kit.json`, nhưng reader vẫn hỗ trợ tên cũ này để tương thích.
+
+Config không có generated marker và không nằm trong `OUTPUT_FILES`.
+
+---
+
+## 9. Write semantics
 
 ### `init`
 
@@ -194,9 +276,25 @@ Thiếu file → **warn**, không fail (trừ khi thiếu package.json).
 
 `doctor --fix`: chỉ ghi `missing` và `outdated`; bỏ qua `upToDate`. Nếu gặp `untracked`, skip và exit 1 trừ khi có `--force`.
 
+### `index`
+
+| Mode        | Hành vi                                        |
+| ----------- | ---------------------------------------------- |
+| Default     | Ghi context tree vào output path               |
+| `--dry-run` | In metadata, không ghi file                    |
+| `--json`    | In JSON `{ ok, output, tree }`, không ghi file |
+
+### `config init`
+
+| Trạng thái  | Điều kiện                         |
+| ----------- | --------------------------------- |
+| Created     | Config chưa tồn tại               |
+| Skipped     | Config tồn tại và không `--force` |
+| Overwritten | Config tồn tại và `--force`       |
+
 ---
 
-## 8. Tương lai (planned)
+## 10. Tương lai (planned)
 
 | Thay đổi                  | Impact                                                                          |
 | ------------------------- | ------------------------------------------------------------------------------- |

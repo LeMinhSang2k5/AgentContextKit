@@ -1,6 +1,6 @@
 # Yêu cầu chức năng (Functional Requirements)
 
-Phiên bản tài liệu: **v0.1.x** (đồng bộ với `package.json` version).
+Phiên bản tài liệu: **v0.2.x** (đồng bộ với `package.json` version).
 
 Ký hiệu trạng thái: **Done** = đã implement + có test; **Planned** = roadmap.
 
@@ -28,9 +28,11 @@ Ký hiệu trạng thái: **Done** = đã implement + có test; **Planned** = ro
 | FR-init-6  | `--force` ghi đè file output         | Output `Overwritten:`                                                                   | Done       |
 | FR-init-7  | In summary Detected trên terminal    | Project, PM, Framework, Database?, Scripts                                              | Done       |
 | FR-init-8  | Dry-run in preview đầy đủ 3 file     | Có separator và notice "Dry run"                                                        | Done       |
-| FR-init-9  | Sinh Cursor rules tùy chọn           | `init --cursor` tạo `.cursor/rules/agent-context-kit.mdc` an toàn                       | Done       |
+| FR-init-9  | Sinh Cursor rules tùy chọn           | `init --cursor` tạo `.cursor/rules/ready-for-agents.mdc` an toàn                        | Done       |
 | FR-init-10 | Sinh Claude guidance tùy chọn        | `init --claude` tạo `CLAUDE.md` an toàn                                                 | Done       |
 | FR-init-11 | Sinh toàn bộ file agent tùy chọn     | `init --all` tạo Cursor rules + `CLAUDE.md`                                             | Done       |
+| FR-init-12 | Sinh context tree cache              | Khi index bật, tạo `.ready-for-agents/context-tree.json`; `--dry-run` không ghi cache   | Done       |
+| FR-init-13 | Dùng config project                  | `.ready-for-agents.json` set default optional files / index; CLI flag override config   | Done       |
 
 ---
 
@@ -51,6 +53,8 @@ Ký hiệu trạng thái: **Done** = đã implement + có test; **Planned** = ro
 | FR-doctor-11 | `--fix` bảo vệ untracked files                    | Skip file không có marker hợp lệ, exit 1                                | Done       |
 | FR-doctor-12 | `--fix --json` machine-readable                   | JSON có field `fix`, không in text terminal                             | Done       |
 | FR-doctor-13 | Critical failure không chạy fix                   | Missing/invalid `package.json` → fix skipped, exit 1                    | Done       |
+| FR-doctor-14 | `--fix` hỗ trợ context tree                       | Khi index bật, ghi `.ready-for-agents/context-tree.json`                | Done       |
+| FR-doctor-15 | `--fix` dùng config                               | `doctor.fix.*` và `files.*` làm default; CLI flag override config       | Done       |
 
 ### FR-doctor-8 — JSON output
 
@@ -59,7 +63,7 @@ Khi `runDoctor({ json: true })` hoặc CLI `doctor --json`:
 | Tiêu chí               | Acceptance                                                         |
 | ---------------------- | ------------------------------------------------------------------ |
 | Một object trên stdout | `JSON.parse(stdout)` thành công; không có dòng text khác           |
-| Không UI terminal      | Không in `agent-context-kit doctor`, không màu (picocolors)        |
+| Không UI terminal      | Không in `ready-for-agents doctor`, không màu (picocolors)         |
 | Field `cwd`            | Đường dẫn đã `resolve()` (absolute)                                |
 | Field `ok`             | `true` iff không có check `fail` (cùng logic `hasCriticalFailure`) |
 | Field `score`          | `{ passed, warned, failed, total }` khớp `DoctorResult`            |
@@ -79,6 +83,8 @@ Khi `runDoctor({ fix: true, json: true })` hoặc CLI `doctor --fix --json`:
 | `mode: "write"`    | Có `created`, `overwritten`, `skippedUntracked`                          |
 | `mode: "dry-run"`  | Có `wouldGenerate`, `wouldOverwrite`, `wouldSkipUntracked`, `upToDate`   |
 | `critical-failure` | `fix: { ran: false, ok: false, reason: "critical-failure" }`             |
+| `config-error`     | Config JSON lỗi → `fix.ran === false`, có `error`                        |
+| Index fields       | Có `wouldGenerateIndex` hoặc `index` khi context tree được chọn          |
 | Exit code          | `0` khi doctor không critical và fix không skip untracked; `1` ngược lại |
 
 ### Doctor checks
@@ -106,9 +112,11 @@ Khi `runDoctor({ fix: true, json: true })` hoặc CLI `doctor --fix --json`:
 | FR-update-5  | Hỗ trợ `--cwd`                  | Cùng validation path với `init`                                                                         | Done       |
 | FR-update-6  | Không ghi đè file user tự viết  | File tồn tại nhưng không có marker hợp lệ → `Skipped untracked`, exit 1                                 | Done       |
 | FR-update-7  | `--force` ghi đè untracked file | User chủ động truyền `--force` thì overwrite file không có marker                                       | Done       |
-| FR-update-8  | Generated marker/hash           | Mỗi output có marker `agent-context-kit:generated` kèm `file`; `hash` phải khớp body hiện tại           | Done       |
+| FR-update-8  | Generated marker/hash           | Mỗi output có marker `ready-for-agents:generated` kèm `file`; `hash` phải khớp body hiện tại            | Done       |
 | FR-update-9  | `--check` cho CI                | Không ghi file; exit 0 nếu up to date, exit 1 nếu missing/outdated/untracked                            | Done       |
 | FR-update-10 | `--json` machine-readable       | `JSON.parse(stdout)`; schema `UpdateCheckJsonOutput`; không in text terminal                            | Done       |
+| FR-update-11 | Refresh context tree cache      | Khi index bật, regenerate `.ready-for-agents/context-tree.json`                                         | Done       |
+| FR-update-12 | Dùng config project             | `.ready-for-agents.json` set default optional files / index; CLI flag override config                   | Done       |
 
 ### FR-update-10 — JSON output
 
@@ -142,8 +150,50 @@ Khi `runUpdate({ check: true, json: true })`, CLI `update --check --json`, hoặ
 | FR-prompt-7  | Exit 1 khi input rỗng          | Sau normalize không còn nội dung                                                      | Done       |
 | FR-prompt-8  | Giảm độ dài input filler-heavy | Output ngắn hơn input gốc (test)                                                      | Done       |
 | FR-prompt-9  | `--target auto\|en\|vi`        | Điều khiển instruction ngôn ngữ trong Response; invalid target exit 1                 | Done       |
+| FR-prompt-14 | Dùng config target             | Nếu không có `--target`, đọc `prompt.target` từ `.ready-for-agents.json`              | Done       |
+| FR-prompt-15 | `--context`                    | Chèn relevant context từ context tree/cache hoặc live scan                            | Done       |
+| FR-prompt-16 | `--compact`                    | Render prompt ngắn hơn, giữ Task/Relevant Context/Verify chính                        | Done       |
+| FR-prompt-17 | Alias `p`                      | `ready-for-agents p "..."` mặc định context + compact                                 | Done       |
+| FR-prompt-18 | Binary alias `rfa`             | `rfa p "..."` gọi cùng CLI                                                            | Done       |
+| FR-prompt-19 | Config context/compact         | `prompt.context`, `prompt.style`, `prompt.contextLimit` làm default                   | Done       |
 
 **Không MVP:** dịch toàn bộ prompt bằng model, `--ai`. Xem [PROMPT_SPEC.md](./PROMPT_SPEC.md).
+
+---
+
+## FR-config — Lệnh `config init`
+
+| ID          | Mô tả                       | Acceptance                                                                   | Trạng thái |
+| ----------- | --------------------------- | ---------------------------------------------------------------------------- | ---------- |
+| FR-config-1 | Tạo config project          | `config init` tạo `.ready-for-agents.json`                                   | Done       |
+| FR-config-2 | `--dry-run` không ghi file  | Preview nội dung config, disk state không đổi                                | Done       |
+| FR-config-3 | Không ghi đè mặc định       | Config tồn tại → output `Skipped`, không overwrite                           | Done       |
+| FR-config-4 | `--force` ghi đè config     | Config tồn tại và có `--force` → overwrite                                   | Done       |
+| FR-config-5 | Legacy config compatibility | Reader hỗ trợ `.agent-context-kit.json` nếu chưa có `.ready-for-agents.json` | Done       |
+
+---
+
+## FR-index — Lệnh `index`
+
+| ID         | Mô tả                      | Acceptance                                                                                                        | Trạng thái |
+| ---------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------- |
+| FR-index-1 | Build context tree         | Output có `tool`, `project`, `summary`, `files`, `sections`, hashes, anchors, keywords, commands, token estimates | Done       |
+| FR-index-2 | Default output path        | Ghi `.ready-for-agents/context-tree.json`                                                                         | Done       |
+| FR-index-3 | `--dry-run` không ghi file | In metadata, disk state không đổi                                                                                 | Done       |
+| FR-index-4 | `--json` machine-readable  | In `{ ok, output, tree }`, không ghi file                                                                         | Done       |
+| FR-index-5 | Custom output path         | `--output <path>` hoặc config `index.output`                                                                      | Done       |
+
+---
+
+## FR-query — Lệnh `query`
+
+| ID         | Mô tả                     | Acceptance                                                              | Trạng thái |
+| ---------- | ------------------------- | ----------------------------------------------------------------------- | ---------- |
+| FR-query-1 | Select relevant context   | Trả section refs, line ranges, summary, reasons, token estimates        | Done       |
+| FR-query-2 | Dùng context tree cache   | Nếu `.ready-for-agents/context-tree.json` tồn tại thì `source: "cache"` | Done       |
+| FR-query-3 | Live fallback             | Nếu cache chưa có thì scan live generated context files                 | Done       |
+| FR-query-4 | `--json` machine-readable | In `{ ok, cwd, query, source, treePath, summary, matches }`             | Done       |
+| FR-query-5 | Giới hạn section          | `--limit` giới hạn số match, clamp 1-20                                 | Done       |
 
 ---
 
@@ -180,6 +230,7 @@ Khi `runUpdate({ check: true, json: true })`, CLI `update --check --json`, hoặ
 | FR-init                           | `tests/validation.test.ts`, `tests/init-safety.test.ts`                                 |
 | FR-update                         | `tests/update.test.ts`                                                                  |
 | FR-doctor (gồm `--json`, `--fix`) | `tests/doctor.test.ts` — blocks `runDoctor --json`, `runDoctor --fix`                   |
+| FR-config / FR-index              | `tests/config-index.test.ts`                                                            |
 | FR-detect                         | `tests/detectors.test.ts`, `tests/package-manager.test.ts`                              |
 | Generated output                  | `tests/generators.test.ts`                                                              |
 | FR-prompt                         | `tests/prompt.test.ts`, `tests/prompt-examples.test.ts`, `tests/prompt-quality.test.ts` |

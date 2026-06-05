@@ -7,6 +7,30 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **`config init`** — create `.ready-for-agents.json` project defaults
+  - Configure optional file presets, `prompt.target`, and index output path
+  - Legacy `.agent-context-kit.json` is still read for compatibility
+- **`index`** — build `.ready-for-agents/context-tree.json`
+  - Includes generated file hashes, Markdown sections, anchors, keywords, commands, summaries, importance, and token estimates
+  - Supports `--dry-run`, `--json`, `--output`, and `--cwd`
+- **`query`** — select relevant generated context sections for a task
+  - Uses context tree cache when present, falls back to live generated file scan
+  - Supports `--json`, `--limit`, `--tree`, and `--cwd`
+- **`prompt --context --compact`** — build short prompts with relevant context sections from the context tree
+  - `ready-for-agents p "..."` defaults to context + compact
+  - `rfa` binary alias supports `rfa p "..."`
+- `init`, `update`, and `doctor --fix` can generate the context tree cache via config or `--index`
+- `prompt --cwd` reads project config for `prompt.target`, `prompt.context`, `prompt.style`, and `prompt.contextLimit`
+- Tests: `config-index.test.ts`, `query.test.ts`, `prompt-context.test.ts`
+
+### Changed
+
+- Generated `AGENTS.md`, `PROJECT_CONTEXT.md`, and `COMMANDS.md` now include tree/query-first guidance for AI agents.
+- README now shows explicit GitHub and npm links for the npm package page.
+- Public API exports now include config, context tree, query, and prompt context helpers.
+
 ## [0.2.0] - 2026-06-02
 
 ### Added

@@ -151,7 +151,7 @@ Nguồn:
 
 ### 4.3 Ignored directory names (`IGNORED_SCAN_DIRS`)
 
-`node_modules`, `.git`, `dist`, `build`, `.next`, `coverage`
+`node_modules`, `.git`, `.ready-for-agents`, `dist`, `build`, `.next`, `coverage`
 
 MVP **không** walk vào các folder này — chỉ dùng để filter tên và ghi trong AGENTS.md.
 

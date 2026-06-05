@@ -4,27 +4,29 @@
 
 ---
 
-## Đã ship (v0.1.x)
+## Đã ship (v0.2.x)
 
-| Tính năng               | Mô tả ngắn                                                     |
-| ----------------------- | -------------------------------------------------------------- |
-| `init`                  | Sinh `AGENTS.md`, `PROJECT_CONTEXT.md`, `COMMANDS.md`          |
-| `init --dry-run`        | Preview không ghi disk                                         |
-| `init --force`          | Ghi đè file output                                             |
-| Static detect           | PM, stack, scripts, folders                                    |
-| `doctor`                | 11 check + score; fail-fast cwd                                |
-| Safe writes             | Skip file đã tồn tại                                           |
-| `prompt`                | Instruction thô → prompt có cấu trúc (không AI API)            |
-| `prompt --json`         | JSON cho automation                                            |
-| `prompt --file`         | Đọc instruction từ file                                        |
-| `prompt --target`       | Chọn instruction ngôn ngữ `auto`, `en`, hoặc `vi`              |
-| `prompt` (interactive)  | Interactive mode khi không có arg và stdin là TTY              |
-| `.cursor/rules`         | Cursor project rule tùy chọn qua `init --cursor` hoặc `--all`  |
-| `CLAUDE.md`             | Claude Code guidance tùy chọn qua `init --claude` hoặc `--all` |
-| `update`                | Refresh generated context files sau khi repo đổi               |
-| `update --check --json` | Machine-readable freshness check cho CI                        |
-| Generated marker/hash   | Bảo vệ file user tự viết khi chạy `update`                     |
-| `doctor --fix`          | Doctor có thể tạo/refresh context files an toàn                |
+| Tính năng                | Mô tả ngắn                                                      |
+| ------------------------ | --------------------------------------------------------------- |
+| `init`                   | Sinh `AGENTS.md`, `PROJECT_CONTEXT.md`, `COMMANDS.md`           |
+| `init --dry-run`         | Preview không ghi disk                                          |
+| `init --force`           | Ghi đè file output                                              |
+| Static detect            | PM, stack, scripts, folders                                     |
+| `doctor`                 | 11 check + score; fail-fast cwd                                 |
+| Safe writes              | Skip file đã tồn tại                                            |
+| `prompt`                 | Instruction thô → prompt có cấu trúc (không AI API)             |
+| `prompt --json`          | JSON cho automation                                             |
+| `prompt --file`          | Đọc instruction từ file                                         |
+| `prompt --target`        | Chọn instruction ngôn ngữ `auto`, `en`, hoặc `vi`               |
+| `prompt` (interactive)   | Interactive mode khi không có arg và stdin là TTY               |
+| `.cursor/rules`          | Cursor project rule tùy chọn qua `init --cursor` hoặc `--all`   |
+| `CLAUDE.md`              | Claude Code guidance tùy chọn qua `init --claude` hoặc `--all`  |
+| `update`                 | Refresh generated context files sau khi repo đổi                |
+| `update --check --json`  | Machine-readable freshness check cho CI                         |
+| Generated marker/hash    | Bảo vệ file user tự viết khi chạy `update`                      |
+| `doctor --fix`           | Doctor có thể tạo/refresh context files an toàn                 |
+| `.ready-for-agents.json` | Config project cho default optional files, prompt target, index |
+| `index`                  | Context tree cache `.ready-for-agents/context-tree.json`        |
 
 ---
 
@@ -43,9 +45,10 @@
 
 ### P1 — Cận hạn trước
 
-| Item                                  | Lợi ích                                      | Phụ thuộc spec |
-| ------------------------------------- | -------------------------------------------- | -------------- |
-| Config file `.agent-context-kit.json` | Cho phép chọn default optional files / style | CLI_SPEC       |
+| Item                  | Lợi ích                                                   | Phụ thuộc spec |
+| --------------------- | --------------------------------------------------------- | -------------- |
+| `query` / `search`    | Tìm section liên quan trong context tree trước khi đọc MD | CLI_SPEC       |
+| Config schema publish | Cho editor autocomplete `.ready-for-agents.json`          | DATA_MODEL     |
 
 ### P2 — Mở rộng agent ecosystem
 

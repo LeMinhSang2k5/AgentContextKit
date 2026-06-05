@@ -61,7 +61,7 @@ describe("generateAllFiles formatting", () => {
     const { "AGENTS.md": agents } = generateAllFiles(readProject(dir));
 
     expect(agents).toContain(
-      "- Avoid scanning or modifying `node_modules`, `.git`, `dist`, `build`, `.next`, and `coverage`.\n\n## Files To Avoid Editing",
+      "- Avoid scanning or modifying `node_modules`, `.git`, `.ready-for-agents`, `dist`, `build`, `.next`, and `coverage`.\n\n## Files To Avoid Editing",
     );
   });
 
@@ -111,10 +111,10 @@ describe("generateAllFiles formatting", () => {
       "claude",
     ]);
 
-    expect(files[".cursor/rules/agent-context-kit.mdc"]).toContain(
+    expect(files[".cursor/rules/ready-for-agents.mdc"]).toContain(
       "alwaysApply: true",
     );
-    expect(files[".cursor/rules/agent-context-kit.mdc"]).toContain(
+    expect(files[".cursor/rules/ready-for-agents.mdc"]).toContain(
       "Read `AGENTS.md`",
     );
     expect(files["CLAUDE.md"]).toContain("# CLAUDE.md");

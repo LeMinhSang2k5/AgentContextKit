@@ -9,6 +9,7 @@
 | NFR-1-1 | `doctor` hoàn thành trong vài giây trên project thường | Chỉ thao tác sync FS cố định; không đọc `node_modules` |
 | NFR-1-2 | `init` không quét recursive repo                       | Chỉ detect folder cố định ở root                       |
 | NFR-1-3 | Không spawn child process cho detect                   | Pure Node `fs` + `JSON.parse`                          |
+| NFR-1-4 | `index` nhẹ và deterministic                           | Chỉ đọc `OUTPUT_FILES`; không quét recursive           |
 
 **Không đảm bảo:** project có `package.json` cực lớn (> vài MB) vẫn đọc full vào memory.
 
@@ -60,12 +61,13 @@
 
 ## NFR-6 — Khả năng mở rộng (giới hạn hiện tại)
 
-| Khía cạnh | Giới hạn MVP                         |
-| --------- | ------------------------------------ |
-| Ngôn ngữ  | Chỉ Node.js ecosystem                |
-| Monorepo  | Không detect workspace con tự động   |
-| Config    | Không file `.agent-context-kit.json` |
-| i18n CLI  | English output only                  |
+| Khía cạnh | Giới hạn MVP                                                            |
+| --------- | ----------------------------------------------------------------------- |
+| Ngôn ngữ  | Chỉ Node.js ecosystem                                                   |
+| Monorepo  | Không detect workspace con tự động                                      |
+| Config    | Chỉ project-level `.ready-for-agents.json`; không user/global config    |
+| Cache     | Chỉ project-level `.ready-for-agents/context-tree.json`; không database |
+| i18n CLI  | English output only                                                     |
 
 ---
 

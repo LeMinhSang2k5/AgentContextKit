@@ -185,13 +185,13 @@ describe("safe behavior", () => {
     });
 
     expect(code).toBe(0);
-    expect(existsSync(join(dir, ".cursor/rules/agent-context-kit.mdc"))).toBe(
+    expect(existsSync(join(dir, ".cursor/rules/ready-for-agents.mdc"))).toBe(
       false,
     );
     expect(existsSync(join(dir, "CLAUDE.md"))).toBe(false);
 
     const out = output();
-    expect(out).toContain(".cursor/rules/agent-context-kit.mdc");
+    expect(out).toContain(".cursor/rules/ready-for-agents.mdc");
     expect(out).toContain("CLAUDE.md");
   });
 
@@ -202,7 +202,7 @@ describe("safe behavior", () => {
 
     expect(code).toBe(0);
     expect(
-      readFileSync(join(dir, ".cursor/rules/agent-context-kit.mdc"), "utf-8"),
+      readFileSync(join(dir, ".cursor/rules/ready-for-agents.mdc"), "utf-8"),
     ).toContain("alwaysApply: true");
     expect(readFileSync(join(dir, "CLAUDE.md"), "utf-8")).toContain(
       "# CLAUDE.md",
@@ -215,7 +215,7 @@ describe("safe behavior", () => {
     const code = await runInit({ cwd: dir, all: true });
 
     expect(code).toBe(0);
-    expect(existsSync(join(dir, ".cursor/rules/agent-context-kit.mdc"))).toBe(
+    expect(existsSync(join(dir, ".cursor/rules/ready-for-agents.mdc"))).toBe(
       true,
     );
     expect(existsSync(join(dir, "CLAUDE.md"))).toBe(true);
@@ -223,7 +223,7 @@ describe("safe behavior", () => {
 
   it("does not overwrite optional files without --force", async () => {
     const dir = makeProject("optional-no-force", {
-      ".cursor/rules/agent-context-kit.mdc": "KEEP_CURSOR",
+      ".cursor/rules/ready-for-agents.mdc": "KEEP_CURSOR",
       "CLAUDE.md": "KEEP_CLAUDE",
     });
 
@@ -231,7 +231,7 @@ describe("safe behavior", () => {
 
     expect(code).toBe(0);
     expect(
-      readFileSync(join(dir, ".cursor/rules/agent-context-kit.mdc"), "utf-8"),
+      readFileSync(join(dir, ".cursor/rules/ready-for-agents.mdc"), "utf-8"),
     ).toBe("KEEP_CURSOR");
     expect(readFileSync(join(dir, "CLAUDE.md"), "utf-8")).toBe("KEEP_CLAUDE");
   });
@@ -304,7 +304,7 @@ describe("terminal output format", () => {
     await runInit({ cwd: dir });
 
     const out = output();
-    expect(out).toContain("agent-context-kit");
+    expect(out).toContain("ready-for-agents");
     expect(out).toContain("Detected:");
     expect(out).toContain("Generated:");
     expect(out).toContain("Skipped:");

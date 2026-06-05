@@ -21,7 +21,7 @@ export function generateAllFiles(
   };
 
   if (presets.includes("cursor")) {
-    files[".cursor/rules/agent-context-kit.mdc"] = generateCursorRules(ctx);
+    files[".cursor/rules/ready-for-agents.mdc"] = generateCursorRules(ctx);
   }
   if (presets.includes("claude")) {
     files["CLAUDE.md"] = generateClaudeMd(ctx);

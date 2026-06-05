@@ -25,7 +25,7 @@ export function extractFeatureLabel(text: string): string | null {
   if (/\b(promt|prompt)\b/i.test(text)) return "`prompt`";
   if (/\bdoctor\b/i.test(text)) return "`doctor`";
   if (/\binit\b/i.test(text)) return "`init`";
-  if (/\bagent-context-kit\b/i.test(text)) return "`agent-context-kit`";
+  if (/\bready-for-agents\b/i.test(text)) return "`ready-for-agents`";
   return null;
 }
 
@@ -35,8 +35,8 @@ function extractUserContext(text: string): string[] {
   if (feature) {
     context.push(`The user is asking about the ${feature} feature.`);
   }
-  if (/\bagent-context-kit\b/i.test(text)) {
-    context.push("The user mentioned `agent-context-kit`.");
+  if (/\bready-for-agents\b/i.test(text)) {
+    context.push("The user mentioned `ready-for-agents`.");
   }
   if (/(project|của tôi|repo|repository)/iu.test(text)) {
     context.push("The user wants the answer grounded in their project.");
@@ -272,7 +272,17 @@ function buildBriefForIntent(
   segments: string[],
   commands: string[],
   target: PromptTarget,
-): Omit<PromptBrief, "source" | "target" | "original" | "stats"> {
+): Omit<
+  PromptBrief,
+  | "source"
+  | "target"
+  | "style"
+  | "original"
+  | "relevantContext"
+  | "contextSource"
+  | "contextTreePath"
+  | "stats"
+> {
   const userConstraints = extractConstraintsFromSegments(segments);
 
   switch (intent) {
@@ -402,7 +412,9 @@ export function extractPromptBrief(
   return {
     source,
     target,
+    style: "standard",
     original,
+    relevantContext: [],
     ...body,
     verify: [...new Set(body.verify)],
     requirements: [...new Set(body.requirements)],

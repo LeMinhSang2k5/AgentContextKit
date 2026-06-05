@@ -5,12 +5,19 @@ import {
   writeUpdateFiles,
   type UpdateWriteResult,
 } from "./update.js";
+import { resolveDoctorFixOptions, toGeneratePresets } from "../config/apply.js";
+import { readReadyForAgentsConfig } from "../config/read.js";
 import { runDoctorChecks } from "../doctor/checks.js";
 import { formatScore, hasCriticalFailure } from "../doctor/score.js";
 import { readProject } from "../fs/read-project.js";
 import { generateAllFiles } from "../generators/index.js";
+import {
+  buildContextTree,
+  resolveIndexOutput,
+  writeContextTree,
+} from "../indexer/context-tree.js";
 import type { DoctorCheck, DoctorResult } from "../doctor/checks.js";
-import type { GeneratedFiles, GeneratePreset, OutputFile } from "../types.js";
+import type { GeneratedFiles, OutputFile } from "../types.js";
 
 export type DoctorOptions = {
   cwd?: string;
@@ -21,13 +28,15 @@ export type DoctorOptions = {
   cursor?: boolean;
   claude?: boolean;
   all?: boolean;
+  index?: boolean;
 };
 
 type DoctorFixJson =
   | {
       ran: false;
       ok: false;
-      reason: "critical-failure";
+      reason: "critical-failure" | "config-error";
+      error?: string;
     }
   | {
       ran: true;
@@ -37,17 +46,22 @@ type DoctorFixJson =
       wouldGenerate: OutputFile[];
       wouldOverwrite: OutputFile[];
       wouldSkipUntracked: OutputFile[];
+      wouldGenerateIndex?: string;
     }
   | ({
       ran: true;
       mode: "write";
       ok: boolean;
+      index?: {
+        output: string;
+        written: boolean;
+      };
     } & UpdateWriteResult);
 
 type DoctorFixResult = Exclude<DoctorFixJson, { ran: false }>;
 
 /**
- * `agent-context-kit doctor` command handler.
+ * `rfa doctor` command handler.
  *
  * Runs all checks, prints results, and returns exit code:
  *   0 = no critical failures
@@ -103,12 +117,17 @@ function runDoctorFix(
   }
 
   const fix = runFix(cwd, options);
+  if (!fix.ran) {
+    console.log();
+    console.log(pc.yellow(fix.error ?? "Fix skipped."));
+    return 1;
+  }
   printFixResult(fix);
   return fix.ok ? 0 : 1;
 }
 
 function printDoctorReport(result: DoctorResult): void {
-  console.log(pc.bold("agent-context-kit doctor"));
+  console.log(pc.bold("rfa doctor"));
   console.log();
 
   console.log("Checks:");
@@ -163,10 +182,22 @@ function formatCheckLine(check: DoctorCheck): string {
   }
 }
 
-function runFix(cwd: string, options: DoctorOptions): DoctorFixResult {
+function runFix(cwd: string, options: DoctorOptions): DoctorFixJson {
+  const configResult = readReadyForAgentsConfig(cwd);
+  if (!configResult.ok) {
+    return {
+      ran: false,
+      ok: false,
+      reason: "config-error",
+      error: configResult.error,
+    };
+  }
+
   const ctx = readProject(cwd);
-  const files = generateAllFiles(ctx, resolveFixPresets(options));
+  const effective = resolveDoctorFixOptions(options, configResult.config);
+  const files = generateAllFiles(ctx, toGeneratePresets(effective));
   const check = checkGeneratedFiles(cwd, files);
+  const indexOutput = resolveIndexOutput(cwd, configResult.config.index.output);
 
   if (options.dryRun) {
     return {
@@ -177,20 +208,27 @@ function runFix(cwd: string, options: DoctorOptions): DoctorFixResult {
       wouldGenerate: check.missing,
       wouldOverwrite: check.outdated,
       wouldSkipUntracked: check.untracked,
+      wouldGenerateIndex: effective.index
+        ? configResult.config.index.output
+        : undefined,
     };
   }
 
   const selected = [
     ...check.missing,
     ...check.outdated,
-    ...(options.force ? check.untracked : []),
+    ...(effective.force ? check.untracked : []),
   ];
   const filesToWrite = pickGeneratedFiles(files, selected);
   const writeResult =
     selected.length > 0
-      ? writeUpdateFiles(cwd, filesToWrite, { force: options.force ?? false })
+      ? writeUpdateFiles(cwd, filesToWrite, { force: effective.force })
       : { created: [], overwritten: [], skippedUntracked: [] };
-  const skippedUntracked = options.force ? [] : check.untracked;
+  const skippedUntracked = effective.force ? [] : check.untracked;
+
+  if (effective.index) {
+    writeContextTree(indexOutput, buildContextTree(ctx));
+  }
 
   return {
     ran: true,
@@ -199,14 +237,10 @@ function runFix(cwd: string, options: DoctorOptions): DoctorFixResult {
     created: writeResult.created,
     overwritten: writeResult.overwritten,
     skippedUntracked,
+    index: effective.index
+      ? { output: configResult.config.index.output, written: true }
+      : undefined,
   };
-}
-
-function resolveFixPresets(options: DoctorOptions): GeneratePreset[] {
-  const presets: GeneratePreset[] = ["core"];
-  if (options.all || options.cursor) presets.push("cursor");
-  if (options.all || options.claude) presets.push("claude");
-  return presets;
 }
 
 function pickGeneratedFiles(
@@ -230,10 +264,14 @@ function printFixResult(fix: DoctorFixResult): void {
     printList("Would generate:", fix.wouldGenerate);
     printList("Would overwrite:", fix.wouldOverwrite);
     printList("Would skip untracked:", fix.wouldSkipUntracked);
+    if (fix.wouldGenerateIndex) {
+      printList("Would generate:", [fix.wouldGenerateIndex]);
+    }
     if (
       fix.wouldGenerate.length === 0 &&
       fix.wouldOverwrite.length === 0 &&
-      fix.wouldSkipUntracked.length === 0
+      fix.wouldSkipUntracked.length === 0 &&
+      !fix.wouldGenerateIndex
     ) {
       console.log(pc.green("No generated context files need fixing."));
     }
@@ -244,23 +282,27 @@ function printFixResult(fix: DoctorFixResult): void {
   printList("Generated:", fix.created);
   printList("Overwritten:", fix.overwritten);
   printList("Skipped untracked:", fix.skippedUntracked);
+  if (fix.index?.written) {
+    printList("Generated:", [fix.index.output]);
+  }
   if (
     fix.created.length === 0 &&
     fix.overwritten.length === 0 &&
-    fix.skippedUntracked.length === 0
+    fix.skippedUntracked.length === 0 &&
+    !fix.index?.written
   ) {
     console.log(pc.green("No generated context files needed changes."));
   }
   if (fix.skippedUntracked.length > 0) {
     console.log(
       pc.yellow(
-        "Some files were not generated by agent-context-kit. Re-run with `--force` to overwrite them.",
+        "Some files were not generated by ready-for-agents. Re-run with `--force` to overwrite them.",
       ),
     );
   }
 }
 
-function printList(title: string, files: OutputFile[]): void {
+function printList(title: string, files: string[]): void {
   if (files.length === 0) return;
   console.log(title);
   for (const file of files) {

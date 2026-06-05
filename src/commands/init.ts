@@ -1,12 +1,22 @@
 import pc from "picocolors";
+import {
+  resolveFilePresetOptions,
+  toGeneratePresets,
+} from "../config/apply.js";
+import { readReadyForAgentsConfig } from "../config/read.js";
 import { generateAllFiles } from "../generators/index.js";
+import {
+  buildContextTree,
+  resolveIndexOutput,
+  writeContextTree,
+} from "../indexer/context-tree.js";
 import {
   readProject,
   resolveProjectCwd,
   validateInitTarget,
 } from "../fs/read-project.js";
 import { planWriteActions, writeGeneratedFiles } from "../fs/write-files.js";
-import type { GeneratedFiles, GeneratePreset, OutputFile } from "../types.js";
+import type { GeneratedFiles, OutputFile } from "../types.js";
 import { OUTPUT_FILES } from "../types.js";
 import {
   formatCreatedLines,
@@ -26,6 +36,7 @@ export type InitOptions = {
   cursor?: boolean;
   claude?: boolean;
   all?: boolean;
+  index?: boolean;
 };
 
 /**
@@ -46,10 +57,18 @@ export async function runInit(options: InitOptions): Promise<number> {
   }
 
   const cwd = resolveProjectCwd(options.cwd);
+  const configResult = readReadyForAgentsConfig(cwd);
+  if (!configResult.ok) {
+    console.error(pc.red(configResult.error));
+    return 1;
+  }
+
   const ctx = readProject(cwd);
-  const presets = resolveGeneratePresets(options);
+  const effective = resolveFilePresetOptions(options, configResult.config);
+  const presets = toGeneratePresets(effective);
   const files = generateAllFiles(ctx, presets);
   const force = options.force ?? false;
+  const indexOutput = resolveIndexOutput(cwd, configResult.config.index.output);
 
   printHeader();
   for (const line of formatDetectedSummary(ctx)) {
@@ -59,6 +78,11 @@ export async function runInit(options: InitOptions): Promise<number> {
 
   if (options.dryRun) {
     printDryRunPreview(cwd, files, force);
+    if (effective.index) {
+      console.log();
+      console.log("Would generate:");
+      console.log(`- ${configResult.config.index.output}`);
+    }
     console.log();
     console.log(pc.dim(formatDryRunSeparator()));
     console.log(pc.yellow(formatDryRunNotice()));
@@ -77,10 +101,17 @@ export async function runInit(options: InitOptions): Promise<number> {
   printResultLines(overwritten, formatOverwrittenLines, pc.magenta);
   printResultLines(skipped, formatSkippedLines, pc.yellow);
 
+  if (effective.index) {
+    writeContextTree(indexOutput, buildContextTree(ctx));
+    console.log(pc.green("Generated:"));
+    console.log(`- ${configResult.config.index.output}`);
+  }
+
   if (
     created.length === 0 &&
     overwritten.length === 0 &&
-    skipped.length === 0
+    skipped.length === 0 &&
+    !effective.index
   ) {
     console.log(pc.dim("No output files written."));
   }
@@ -99,7 +130,7 @@ function printResultLines(
 }
 
 function printHeader(): void {
-  console.log(pc.bold("agent-context-kit"));
+  console.log(pc.bold("ready-for-agents"));
   console.log();
 }
 
@@ -141,11 +172,4 @@ function printDryRunPreview(
       console.log();
     }
   });
-}
-
-function resolveGeneratePresets(options: InitOptions): GeneratePreset[] {
-  const presets: GeneratePreset[] = ["core"];
-  if (options.all || options.cursor) presets.push("cursor");
-  if (options.all || options.claude) presets.push("claude");
-  return presets;
 }

@@ -1,17 +1,18 @@
-# Tổng quan hệ thống — agent-context-kit
+# Tổng quan hệ thống — ready-for-agents
 
 ## 1. Định nghĩa
 
-**agent-context-kit** là CLI Node.js giúp repository **sẵn sàng cho AI coding agent** bằng cách:
+**ready-for-agents** là CLI Node.js giúp repository **sẵn sàng cho AI coding agent** bằng cách:
 
 1. **Quét tĩnh** project (chủ yếu `package.json`, lockfile, folder gốc).
 2. **Sinh** hoặc **kiểm tra** các file Markdown context tại root project.
+3. **Cache** cấu trúc context dưới dạng tree JSON để agent có thể đọc chọn lọc hơn.
 
 Không gọi API AI. Không quét đệ quy `node_modules` hay toàn bộ cây thư mục.
 
 ## 2. Vấn đề giải quyết
 
-| Không có context                     | Có agent-context-kit                  |
+| Không có context                     | Có ready-for-agents                   |
 | ------------------------------------ | ------------------------------------- |
 | Agent đoán npm/pnpm                  | Đọc lockfile + `packageManager`       |
 | Agent bịa lệnh build/test            | Dùng script thật trong `package.json` |
@@ -23,10 +24,12 @@ Không gọi API AI. Không quét đệ quy `node_modules` hay toàn bộ cây t
 ### Trong phạm vi
 
 - Project **Node.js** có `package.json` tại root.
-- Lệnh `init`: sinh `AGENTS.md`, `PROJECT_CONTEXT.md`, `COMMANDS.md`; tùy chọn `.cursor/rules/agent-context-kit.mdc` và `CLAUDE.md`.
+- Lệnh `init`: sinh `AGENTS.md`, `PROJECT_CONTEXT.md`, `COMMANDS.md`; tùy chọn `.cursor/rules/ready-for-agents.mdc` và `CLAUDE.md`.
 - Lệnh `update`: refresh các file context generated sau khi repo đổi.
 - Lệnh `doctor`: kiểm tra readiness (11 check khi cwd hợp lệ); `--fix` sửa context files an toàn.
 - Lệnh `prompt`: cấu trúc instruction thô thành prompt agent-ready (rule-based).
+- Lệnh `config init`: tạo `.ready-for-agents.json` để lưu default project.
+- Lệnh `index`: tạo `.ready-for-agents/context-tree.json`.
 - Detect: package manager, stack (frontend/backend/database), scripts, folder gốc.
 - Ghi file an toàn (`--dry-run`, `--force`).
 
@@ -41,10 +44,10 @@ Không gọi API AI. Không quét đệ quy `node_modules` hay toàn bộ cây t
 ```mermaid
 flowchart TB
   subgraph inputs [Input]
-    PJ[package.json]
+    PJ["package.json"]
     LF[lockfiles]
     DEP[dependencies]
-    CWD[--cwd path]
+    CWD["--cwd path"]
   end
 
   subgraph init [init]
@@ -56,14 +59,14 @@ flowchart TB
   subgraph update [update]
     U1[readProject]
     U2[generateAllFiles]
-    U3[check marker/hash]
+    U3["check marker/hash"]
     U4[write tracked files or JSON check]
   end
 
   subgraph doctor [doctor]
     D1[runDoctorChecks]
     D2[terminal report or JSON]
-    D3[optional --fix]
+    D3["optional --fix"]
   end
 
   CWD --> I1
@@ -71,13 +74,15 @@ flowchart TB
   LF --> I1
   DEP --> I1
   I1 --> I2 --> I3
-  I3 --> OUT[Core files + optional Cursor/Claude files]
+  I3 --> OUT["Core files + optional Cursor/Claude files"]
+  I3 --> TREE[Context tree cache]
 
   CWD --> U1
   PJ --> U1
   LF --> U1
   U1 --> U2 --> U3 --> U4
   U4 --> OUT
+  U4 --> TREE
 
   CWD --> D1
   PJ --> D1
@@ -85,14 +90,17 @@ flowchart TB
   D1 --> D2 --> D3
   D3 --> SCORE[Score + exit code]
   D3 --> OUT
+  D3 --> TREE
 ```
 
-| Lệnh     | Ghi disk?                                 | Mục đích                                          |
-| -------- | ----------------------------------------- | ------------------------------------------------- |
-| `init`   | Có (trừ `--dry-run`)                      | Tạo file context lần đầu                          |
-| `update` | Có (trừ `--dry-run`, `--check`, `--json`) | Refresh file context đã sinh                      |
-| `doctor` | Không, trừ khi dùng `--fix`               | Báo thiếu gì và có thể sửa context files an toàn  |
-| `prompt` | Không                                     | Cấu trúc instruction thô thành prompt agent-ready |
+| Lệnh          | Ghi disk?                                 | Mục đích                                          |
+| ------------- | ----------------------------------------- | ------------------------------------------------- |
+| `init`        | Có (trừ `--dry-run`)                      | Tạo file context lần đầu                          |
+| `update`      | Có (trừ `--dry-run`, `--check`, `--json`) | Refresh file context đã sinh                      |
+| `doctor`      | Không, trừ khi dùng `--fix`               | Báo thiếu gì và có thể sửa context files an toàn  |
+| `prompt`      | Không                                     | Cấu trúc instruction thô thành prompt agent-ready |
+| `config init` | Có (trừ `--dry-run`)                      | Tạo config project                                |
+| `index`       | Có (trừ `--dry-run`, `--json`)            | Tạo context tree cache                            |
 
 ## 5. Đối tượng sử dụng
 
@@ -114,13 +122,15 @@ flowchart TB
 ## 7. Cấu trúc repo (CLI)
 
 ```text
-agent-context-kit/          # package CLI
+ready-for-agents/          # package CLI
 ├── src/
 │   ├── cli.ts              # Entry
-│   ├── commands/           # init, update, doctor, prompt
+│   ├── commands/           # init, update, doctor, prompt, config, index
+│   ├── config/             # config reader/defaults
 │   ├── doctor/             # checks, score
 │   ├── detectors/          # PM, stack, scripts, folders
 │   ├── generators/         # Markdown templates + generated marker
+│   ├── indexer/            # context tree cache
 │   └── fs/                 # read/write/validate
 ├── tests/
 └── doc/guide/              # Đặc tả hệ thống (tài liệu này)

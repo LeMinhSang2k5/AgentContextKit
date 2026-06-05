@@ -4,12 +4,14 @@
   "description": "Make any repository AI-agent-ready in 30 seconds.",
   "type": "module",
   "bin": {
-    "ready-for-agents": "./dist/cli.js"
+    "ready-for-agents": "./dist/cli.js",
+    "rfa": "./dist/cli.js"
   },
   "files": [
     "dist",
     "doc/guide",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "PUBLISH_CHECKLIST.md"
   ],
   "scripts": {
     "build": "tsc",
@@ -25,9 +27,12 @@
     "ai",
     "agents",
     "cli",
+    "context",
     "cursor",
     "codex",
-    "developer-tools"
+    "developer-tools",
+    "llm",
+    "prompt"
   ],
   "license": "MIT",
   "repository": {

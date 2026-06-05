@@ -2,7 +2,7 @@
 
 Runner: **Vitest** (`pnpm test`).
 
-Hiện tại: **247 tests** trong 10 file (cập nhật khi thêm test).
+Hiện tại: **256 tests** trong 11 file (cập nhật khi thêm test).
 
 ---
 
@@ -17,6 +17,7 @@ Hiện tại: **247 tests** trong 10 file (cập nhật khi thêm test).
 | CI machine-readable     | `doctor.test.ts` → `runDoctor --json` (FR-doctor-8)                   |
 | Validation init         | `validation.test.ts`                                                  |
 | Update contract         | `update.test.ts` (`--check`, `--json`, marker/untracked safety)       |
+| Config/index contract   | `config-index.test.ts`, `query.test.ts`                               |
 | Format output Markdown  | `generators.test.ts`                                                  |
 | Prompt pipeline (no AI) | `prompt.test.ts`, `prompt-examples.test.ts`, `prompt-quality.test.ts` |
 
@@ -31,6 +32,8 @@ Hiện tại: **247 tests** trong 10 file (cập nhật khi thêm test).
 │  Integration-ish (runInit stdout)   │  validation.test.ts
 ├─────────────────────────────────────┤
 │  Component (init write/dry-run)     │  init-safety.test.ts
+├─────────────────────────────────────┤
+│  Component (config/index/query)     │  config-index.test.ts, query.test.ts
 ├─────────────────────────────────────┤
 │  Unit (detectors, doctor, PM)       │  detectors, doctor, package-manager
 ├─────────────────────────────────────┤
@@ -48,10 +51,13 @@ Hiện tại: **247 tests** trong 10 file (cập nhật khi thêm test).
 | `validation.test.ts`      | 7         | `runInit` validation, dry-run không ghi                                                                              |
 | `init-safety.test.ts`     | 18        | skip/force/overwrite, dry-run plan, optional Cursor/Claude files                                                     |
 | `update.test.ts`          | 9         | update marker/hash safety, `--force`, dry-run, missing files, optional Cursor/Claude refresh, `--check --json`       |
+| `config-index.test.ts`    | 9         | `config init`, legacy config read, config defaults, prompt target config, `index` write/dry-run/json                 |
+| `query.test.ts`           | 3         | live context selection, cached tree `--json`, empty query validation                                                 |
 | `detectors.test.ts`       | 16        | stack, scripts, related scripts, labels                                                                              |
 | `package-manager.test.ts` | 5         | lockfile priority, field parse, fallback                                                                             |
 | `generators.test.ts`      | 5         | AGENTS spacing, COMMANDS fallback label, trailing newline, optional agent generators                                 |
 | `prompt.test.ts`          | 26        | segment, classify, explain/clarify/review, sections, JSON schema, input source validation, `--target`, stats wording |
+| `prompt-context.test.ts`  | 3         | `prompt --context --compact`, JSON `relevantContext`, config context/style defaults                                  |
 | `prompt-examples.test.ts` | 131       | bilingual/mixed prompt example suite for intent classification                                                       |
 | `prompt-quality.test.ts`  | 11        | output quality signals: task, requirements, verify, unclear, constraints                                             |
 
@@ -73,7 +79,7 @@ Tương tự temp dir hoặc mock cwd; kiểm tra disk state sau `runInit`.
 
 ### 4.3 Missing cwd (doctor)
 
-`join(tmpdir(), \`missing-agent-context-kit-${randomUUID()}\`)` — tránh collision.
+`join(tmpdir(), \`missing-ready-for-agents-${randomUUID()}\`)` — tránh collision.
 
 ---
 
@@ -116,7 +122,7 @@ expect(parsed).toMatchObject({
     }),
   ]),
 });
-expect(stdout).not.toContain("agent-context-kit doctor");
+expect(stdout).not.toContain("ready-for-agents doctor");
 ```
 
 Map FR: [REQUIREMENTS.md § FR-doctor-8](./REQUIREMENTS.md#fr-doctor-8--json-output).
@@ -136,15 +142,17 @@ Map FR: [REQUIREMENTS.md § FR-doctor-8](./REQUIREMENTS.md#fr-doctor-8--json-out
 
 ## 7. Case bắt buộc (init)
 
-| Case                  | Expect                                    |
-| --------------------- | ----------------------------------------- |
-| cwd không tồn tại     | exit 1, stderr message                    |
-| `--dry-run`           | không tạo file mới                        |
-| File exists, no force | skipped                                   |
-| `--force`             | overwritten                               |
-| `--cursor`            | tạo `.cursor/rules/agent-context-kit.mdc` |
-| `--claude`            | tạo `CLAUDE.md`                           |
-| `--all`               | tạo cả Cursor rules và `CLAUDE.md`        |
+| Case                  | Expect                                             |
+| --------------------- | -------------------------------------------------- |
+| cwd không tồn tại     | exit 1, stderr message                             |
+| `--dry-run`           | không tạo file mới                                 |
+| File exists, no force | skipped                                            |
+| `--force`             | overwritten                                        |
+| `--cursor`            | tạo `.cursor/rules/ready-for-agents.mdc`           |
+| `--claude`            | tạo `CLAUDE.md`                                    |
+| `--all`               | tạo cả Cursor rules và `CLAUDE.md`                 |
+| Config optional files | tạo optional files theo `.ready-for-agents.json`   |
+| Config index off/on   | không sinh index khi config tắt; `--index` bật lại |
 
 ---
 
@@ -162,10 +170,38 @@ Map FR: [REQUIREMENTS.md § FR-doctor-8](./REQUIREMENTS.md#fr-doctor-8--json-out
 | `--check` up to date                    | exit 0                                                             |
 | `--check` missing/outdated/untracked    | exit 1                                                             |
 | `--check --json`                        | parseable JSON with `upToDate`, `outdated`, `missing`, `untracked` |
+| Config index                            | regenerate context tree theo config/flag                           |
 
 ---
 
-## 9. Case bắt buộc (prompt)
+## 9. Case bắt buộc (config/index)
+
+| Case                    | Expect                                                   |
+| ----------------------- | -------------------------------------------------------- |
+| `config init --dry-run` | preview `.ready-for-agents.json`, không ghi file         |
+| `config init`           | tạo config mặc định                                      |
+| Config exists no force  | skip, không overwrite                                    |
+| Config exists force     | overwrite                                                |
+| Legacy config filename  | đọc `.agent-context-kit.json` khi chưa có config mới     |
+| Config prompt target    | `prompt` dùng `prompt.target` khi bỏ `--target`          |
+| `index` write           | tạo `.ready-for-agents/context-tree.json` parse được     |
+| `index --dry-run`       | in metadata, không ghi file                              |
+| `index --json`          | stdout parse JSON `{ ok, output, tree }`, không ghi file |
+
+---
+
+## 10. Case bắt buộc (query)
+
+| Case              | Expectation                                                    |
+| ----------------- | -------------------------------------------------------------- |
+| Live fallback     | Nếu chưa có cache, query scan generated context files hiện có  |
+| Cache JSON        | Nếu có context tree, `--json` trả `source: "cache"` parse được |
+| Verification task | Query về test/build ưu tiên section `COMMANDS.md` phù hợp      |
+| Empty query       | Exit `1`, in lỗi rõ ràng                                       |
+
+---
+
+## 11. Case bắt buộc (prompt)
 
 | Case                   | Expect                                                 |
 | ---------------------- | ------------------------------------------------------ |
@@ -182,7 +218,7 @@ Map FR: [REQUIREMENTS.md § FR-doctor-8](./REQUIREMENTS.md#fr-doctor-8--json-out
 
 ---
 
-## 10. Chạy locally
+## 11. Chạy locally
 
 ```bash
 pnpm test              # all
@@ -197,14 +233,14 @@ CI khuyến nghị: `test` + `typecheck` + `build` trên Node 18/20/22.
 Ví dụ gate readiness trên project (sau khi cài CLI):
 
 ```bash
-agent-context-kit doctor --json --cwd . | jq -e '.ok == true'
+ready-for-agents doctor --json --cwd . | jq -e '.ok == true'
 # hoặc chỉ dựa exit code:
-agent-context-kit doctor --json --cwd .
+ready-for-agents doctor --json --cwd .
 ```
 
 ---
 
-## 11. Khi thêm tính năng
+## 12. Khi thêm tính năng
 
 1. Viết FR trong `REQUIREMENTS.md`.
 2. Thêm test trước hoặc cùng PR với code.
@@ -213,7 +249,7 @@ agent-context-kit doctor --json --cwd .
 
 ---
 
-## 12. Gaps (có thể bổ sung)
+## 13. Gaps (có thể bổ sung)
 
 - [ ] E2E: `node dist/cli.js doctor` subprocess + assert stdout
 - [ ] Golden file: snapshot `generateAllFiles` cho fixture cố định

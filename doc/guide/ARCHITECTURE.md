@@ -1,6 +1,6 @@
 # Kiến trúc hệ thống
 
-CLI **agent-context-kit** theo mô hình **pipeline tĩnh**: đọc disk → model nội bộ → output (file hoặc report).
+CLI **ready-for-agents** theo mô hình **pipeline tĩnh**: đọc disk → model nội bộ → output (file hoặc report).
 
 ---
 
@@ -13,14 +13,15 @@ CLI **agent-context-kit** theo mô hình **pipeline tĩnh**: đọc disk → mod
 ├─────────────────────────────────────────────────────────┤
 │  Application                                             │
 │  commands/init.ts · commands/update.ts · commands/doctor │
-│  commands/prompt.ts · commands/output                    │
+│  commands/prompt.ts · commands/config.ts · commands/index│
+│  commands/output                                         │
 ├─────────────────────────────────────────────────────────┤
 │  Domain                                                  │
 │  doctor/checks · doctor/score                            │
-│  generators/* · detectors/*                              │
+│  generators/* · detectors/* · indexer/*                  │
 ├─────────────────────────────────────────────────────────┤
 │  Infrastructure                                          │
-│  fs/read-project · fs/write-files · fs/validate          │
+│  fs/read-project · fs/write-files · fs/validate · config │
 ├─────────────────────────────────────────────────────────┤
 │  Types & constants                                       │
 │  types.ts · constants.ts                                 │
@@ -33,27 +34,44 @@ CLI **agent-context-kit** theo mô hình **pipeline tĩnh**: đọc disk → mod
 
 ```mermaid
 flowchart BT
-  CLI[cli.ts]
-  INIT[commands/init]
-  UPDATE[commands/update]
-  DOC[commands/doctor]
-  OUT[commands/output]
+  CLI["cli.ts"]
+  INIT["commands/init"]
+  UPDATE["commands/update"]
+  DOC["commands/doctor"]
+  PROMPT["commands/prompt"]
+  CONFIGCMD["commands/config"]
+  INDEXCMD["commands/index"]
+  OUT["commands/output"]
+  CFG[config]
+  IDX[indexer]
   GEN[generators]
   DET[detectors]
   FS[fs]
   DR[doctor]
-  TYPES[types/constants]
+  TYPES["types/constants"]
 
   CLI --> INIT
   CLI --> UPDATE
   CLI --> DOC
+  CLI --> PROMPT
+  CLI --> CONFIGCMD
+  CLI --> INDEXCMD
   INIT --> OUT
   INIT --> GEN
   INIT --> FS
+  INIT --> CFG
+  INIT --> IDX
   UPDATE --> OUT
   UPDATE --> GEN
   UPDATE --> FS
+  UPDATE --> CFG
+  UPDATE --> IDX
   DOC --> DR
+  DOC --> CFG
+  DOC --> IDX
+  INDEXCMD --> IDX
+  INDEXCMD --> CFG
+  CONFIGCMD --> CFG
   GEN --> DET
   GEN --> FS
   DR --> DET
@@ -64,6 +82,8 @@ flowchart BT
   DET --> TYPES
   DR --> TYPES
   FS --> TYPES
+  CFG --> TYPES
+  IDX --> TYPES
 ```
 
 **Quy tắc:**
@@ -80,9 +100,11 @@ flowchart BT
 
 ```text
 validateInitTarget
+  → readReadyForAgentsConfig
   → readProject → ProjectContext
   → generateAllFiles → GeneratedFiles
   → writeGeneratedFiles | printDryRunPreview
+  → optional buildContextTree → writeContextTree
 ```
 
 ### 3.2 Doctor pipeline
@@ -100,15 +122,35 @@ Không share `ProjectContext` giữa hai pipeline (doctor không gọi `readProj
 
 ```text
 validateInitTarget
+  → readReadyForAgentsConfig
   → readProject → ProjectContext
   → generateAllFiles → GeneratedFiles with marker/hash
   → checkGeneratedFiles
   → JSON/text check | dry-run preview | write tracked files
+  → optional buildContextTree → writeContextTree
 ```
 
 `update` chỉ overwrite file có generated marker hợp lệ. File không có marker, marker sai path, hoặc hash lệch body được xem là user-authored/untracked và skip trừ khi có `--force`.
 
 ---
+
+### 3.4 Config pipeline
+
+```text
+validateCwd
+  → stringifyDefaultConfig
+  → write .ready-for-agents.json | dry-run preview
+```
+
+### 3.5 Index pipeline
+
+```text
+validateInitTarget
+  → readReadyForAgentsConfig
+  → readProject → ProjectContext
+  → buildContextTree
+  → writeContextTree | JSON output | dry-run metadata
+```
 
 ## 4. Extension points
 
@@ -119,6 +161,8 @@ validateInitTarget
 | Rule stack       | `detectors/stack.ts` + tests                                            |
 | Section Markdown | `generators/*.ts`                                                       |
 | Output file mới  | `types.OUTPUT_FILES` + generator + marker/update + write-files + doctor |
+| Config default   | `config/types.ts` + `config/read.ts` + tests                            |
+| Context tree     | `indexer/context-tree.ts` + `commands/index.ts`                         |
 
 ---
 
@@ -133,7 +177,7 @@ validateInitTarget
 
 npm **luôn** đính kèm `README.md`, `README.vi.md`, `LICENSE`, và `package.json` dù không liệt kê trong `files`. Publish checklist: [PUBLISH_CHECKLIST.md](../../PUBLISH_CHECKLIST.md). Link tương đối trong README tới `./doc/guide/...` hoạt động trên npmjs.com vì `doc/guide` nằm trong tarball.
 
-Runtime user: `npx agent-context-kit` hoặc global install — không cần `src/`; có thể đọc docs tại `node_modules/agent-context-kit/doc/guide/`.
+Runtime user: `npx ready-for-agents` hoặc global install — không cần `src/`; có thể đọc docs tại `node_modules/ready-for-agents/doc/guide/`.
 
 ---
 
@@ -142,6 +186,7 @@ Runtime user: `npx agent-context-kit` hoặc global install — không cần `sr
 - **Unit:** detectors, doctor checks, validation (vitest).
 - **Fixture:** `mkdtempSync` + `package.json` tạm (`tests/doctor.test.ts`, init-safety).
 - **Generator contract:** Markdown spacing, fallback labels, trailing newline (`tests/generators.test.ts`).
+- **Config/index contract:** `tests/config-index.test.ts`.
 - **Không có:** E2E subprocess CLI trong CI (có thể thêm sau).
 
 Xem [TEST_STRATEGY.md](./TEST_STRATEGY.md).

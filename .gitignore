@@ -75,3 +75,4 @@ bun.lockb
 
 # Draft docs (not published specs — see doc/guide/)
 doc/ideas/
+PUBLISHED_CHECKLIST.md

@@ -27,7 +27,7 @@ export function generateAgentsMd(ctx: ProjectContext): string {
     "- Do not guess package manager or scripts; use values from `package.json` and `COMMANDS.md`.",
     "- Match existing code style and patterns in the repo.",
     "- Do not edit lockfiles unless the task explicitly requires dependency updates.",
-    "- Avoid scanning or modifying `node_modules`, `.git`, `dist`, `build`, `.next`, and `coverage`.",
+    "- Avoid scanning or modifying `node_modules`, `.git`, `.ready-for-agents`, `dist`, `build`, `.next`, and `coverage`.",
   ];
 
   if (hasReadme(ctx.cwd)) {
@@ -53,6 +53,13 @@ ${stackLinesForAgents(ctx.stack)}
 ### Important Folders
 ${folderBlock}
 
+## Agent Context Workflow
+
+- If \`.ready-for-agents/context-tree.json\` exists, read it first as a compact section map.
+- Use \`ready-for-agents query "<task>" --cwd .\` to find the most relevant context sections before opening full Markdown files.
+- Open only the listed sections first, then expand to full files or source code when needed.
+- Re-run \`ready-for-agents index --cwd .\` after refreshing generated context files.
+
 ## Important Rules
 
 ${importantRules.join("\n")}
@@ -61,7 +68,8 @@ ${importantRules.join("\n")}
 
 - Lockfiles (\`package-lock.json\`, \`pnpm-lock.yaml\`, \`yarn.lock\`, \`bun.lock\`, \`bun.lockb\`) unless dependencies change.
 - Generated output directories (\`dist/\`, \`build/\`, \`.next/\`) unless rebuilding is required.
-- This file and other agent context files unless the user asks to refresh them with \`agent-context-kit init --force\`.
+- Generated context cache (\`.ready-for-agents/\`) unless refreshing the context index.
+- This file and other agent context files unless the user asks to refresh them with \`ready-for-agents init --force\`.
 
 ## Testing Expectations
 

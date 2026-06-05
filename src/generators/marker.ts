@@ -3,7 +3,7 @@ import type { GeneratedFiles, OutputFile } from "../types.js";
 import { OUTPUT_FILES } from "../types.js";
 
 const MARKER_PATTERN =
-  /\n?<!-- agent-context-kit:generated file="([^"]+)" hash="([a-f0-9]+)" -->\s*$/u;
+  /\n?<!-- ready-for-agents:generated file="([^"]+)" hash="([a-f0-9]+)" -->\s*$/u;
 
 export type GeneratedMarker = {
   file: string;
@@ -43,7 +43,7 @@ export function hasGeneratedMarker(
 export function withGeneratedMarker(file: OutputFile, content: string): string {
   const body = stripGeneratedMarker(content);
   const hash = hashGeneratedContent(body);
-  return `${body}<!-- agent-context-kit:generated file="${file}" hash="${hash}" -->\n`;
+  return `${body}<!-- ready-for-agents:generated file="${file}" hash="${hash}" -->\n`;
 }
 
 export function addGeneratedMarkers(files: GeneratedFiles): GeneratedFiles {

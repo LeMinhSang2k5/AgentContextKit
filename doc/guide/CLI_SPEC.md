@@ -1,6 +1,6 @@
 # Đặc tả CLI
 
-Binary: `agent-context-kit` (`dist/cli.js` sau build).
+Binary: `ready-for-agents` và alias ngắn `rfa` (`dist/cli.js` sau build).
 
 Framework CLI: [commander](https://github.com/tj/commander.js) v13.
 
@@ -10,7 +10,7 @@ Framework CLI: [commander](https://github.com/tj/commander.js) v13.
 
 | Thuộc tính         | Giá trị                            |
 | ------------------ | ---------------------------------- |
-| `name`             | `agent-context-kit`                |
+| `name`             | `ready-for-agents`                 |
 | `--version` / `-V` | Đọc từ `package.json` cạnh `dist/` |
 | `--help` / `-h`    | Help theo subcommand               |
 
@@ -24,14 +24,17 @@ Không có global `--cwd`; mỗi subcommand tự khai báo.
 
 ### Options
 
-| Flag           | Kiểu    | Mặc định        | Mô tả                                           |
-| -------------- | ------- | --------------- | ----------------------------------------------- |
-| `--dry-run`    | boolean | `false`         | Preview; không `writeFileSync`                  |
-| `--force`      | boolean | `false`         | Ghi đè file output đã tồn tại                   |
-| `--cursor`     | boolean | `false`         | Sinh thêm `.cursor/rules/agent-context-kit.mdc` |
-| `--claude`     | boolean | `false`         | Sinh thêm `CLAUDE.md`                           |
-| `--all`        | boolean | `false`         | Sinh toàn bộ file agent tùy chọn                |
-| `--cwd <path>` | string  | `process.cwd()` | Thư mục project (resolve absolute)              |
+| Flag           | Kiểu    | Mặc định        | Mô tả                                          |
+| -------------- | ------- | --------------- | ---------------------------------------------- |
+| `--dry-run`    | boolean | `false`         | Preview; không `writeFileSync`                 |
+| `--force`      | boolean | `false`         | Ghi đè file output đã tồn tại                  |
+| `--cursor`     | boolean | `false`         | Sinh thêm `.cursor/rules/ready-for-agents.mdc` |
+| `--claude`     | boolean | `false`         | Sinh thêm `CLAUDE.md`                          |
+| `--all`        | boolean | `false`         | Sinh toàn bộ file agent tùy chọn               |
+| `--index`      | boolean | config          | Sinh `.ready-for-agents/context-tree.json`     |
+| `--cwd <path>` | string  | `process.cwd()` | Thư mục project (resolve absolute)             |
+
+Nếu `.ready-for-agents.json` tồn tại, `init` dùng `files.cursor`, `files.claude`, `files.all`, `files.index` làm default. Flag CLI được ưu tiên hơn config.
 
 ### Exit codes
 
@@ -42,7 +45,7 @@ Không có global `--cwd`; mỗi subcommand tự khai báo.
 
 ### Output (stdout)
 
-**Header:** `agent-context-kit` (bold qua picocolors)
+**Header:** `ready-for-agents` (bold qua picocolors)
 
 **Block Detected:**
 
@@ -59,30 +62,33 @@ Detected:
 
 - `Would generate:` / `Would overwrite:` / `Skipped:`
 - Nội dung đầy đủ 3 file Markdown (separator `── filename ──`)
+- Nếu index bật: thêm `.ready-for-agents/context-tree.json`
 - Dòng `Dry run — no files written.`
 
 **Ghi thật:**
 
 - `Generated:` / `Overwritten:` / `Skipped:` (màu green/magenta/yellow)
+- Nếu index bật: ghi context tree vào output path trong config.
 
 **Stderr:** message đỏ khi validation fail.
 
 ### Ví dụ
 
 ```bash
-agent-context-kit init
-agent-context-kit init --dry-run
-agent-context-kit init --cursor
-agent-context-kit init --claude
-agent-context-kit init --all
-agent-context-kit init --cwd /absolute/path/to/app --force
+ready-for-agents init
+ready-for-agents init --dry-run
+ready-for-agents init --cursor
+ready-for-agents init --claude
+ready-for-agents init --all
+ready-for-agents init --index
+ready-for-agents init --cwd /absolute/path/to/app --force
 ```
 
 ---
 
 ## 3. Subcommand: `update`
 
-**Mô tả:** Refresh các file context generated cho project. Mặc định chỉ overwrite file có marker do `agent-context-kit` sinh ra; file user tự viết được skip trừ khi có `--force`.
+**Mô tả:** Refresh các file context generated cho project. Mặc định chỉ overwrite file có marker do `ready-for-agents` sinh ra; file user tự viết được skip trừ khi có `--force`.
 
 ### Options
 
@@ -92,10 +98,13 @@ agent-context-kit init --cwd /absolute/path/to/app --force
 | `--check`      | boolean | `false`         | Kiểm tra selected files đã up to date chưa; không ghi file |
 | `--json`       | boolean | `false`         | In JSON machine-readable cho CI; không ghi file            |
 | `--force`      | boolean | `false`         | Ghi đè file existing không có generated marker             |
-| `--cursor`     | boolean | `false`         | Refresh thêm `.cursor/rules/agent-context-kit.mdc`         |
+| `--cursor`     | boolean | `false`         | Refresh thêm `.cursor/rules/ready-for-agents.mdc`          |
 | `--claude`     | boolean | `false`         | Refresh thêm `CLAUDE.md`                                   |
 | `--all`        | boolean | `false`         | Refresh toàn bộ file agent tùy chọn                        |
+| `--index`      | boolean | config          | Regenerate `.ready-for-agents/context-tree.json`           |
 | `--cwd <path>` | string  | `process.cwd()` | Thư mục project (resolve absolute)                         |
+
+Nếu `.ready-for-agents.json` tồn tại, `update` dùng `files.*` làm default. Flag CLI được ưu tiên hơn config.
 
 ### Exit codes
 
@@ -135,13 +144,13 @@ Phân loại:
 ### Ví dụ
 
 ```bash
-agent-context-kit update
-agent-context-kit update --dry-run
-agent-context-kit update --check
-agent-context-kit update --check --json
-agent-context-kit update --all
-agent-context-kit update --force
-agent-context-kit update --cwd /absolute/path/to/app
+ready-for-agents update
+ready-for-agents update --dry-run
+ready-for-agents update --check
+ready-for-agents update --check --json
+ready-for-agents update --all
+ready-for-agents update --force
+ready-for-agents update --cwd /absolute/path/to/app
 ```
 
 ---
@@ -152,16 +161,19 @@ agent-context-kit update --cwd /absolute/path/to/app
 
 ### Options
 
-| Flag           | Kiểu    | Mặc định        | Mô tả                                                      |
-| -------------- | ------- | --------------- | ---------------------------------------------------------- |
-| `--cwd <path>` | string  | `process.cwd()` | Thư mục project                                            |
-| `--json`       | boolean | `false`         | In JSON machine-readable cho CI                            |
-| `--fix`        | boolean | `false`         | Tạo file thiếu và refresh file generated đã cũ             |
-| `--dry-run`    | boolean | `false`         | Với `--fix`, preview thay đổi và không ghi file            |
-| `--force`      | boolean | `false`         | Với `--fix`, overwrite untracked existing files            |
-| `--cursor`     | boolean | `false`         | Với `--fix`, include `.cursor/rules/agent-context-kit.mdc` |
-| `--claude`     | boolean | `false`         | Với `--fix`, include `CLAUDE.md`                           |
-| `--all`        | boolean | `false`         | Với `--fix`, include toàn bộ optional agent files          |
+| Flag           | Kiểu    | Mặc định        | Mô tả                                                       |
+| -------------- | ------- | --------------- | ----------------------------------------------------------- |
+| `--cwd <path>` | string  | `process.cwd()` | Thư mục project                                             |
+| `--json`       | boolean | `false`         | In JSON machine-readable cho CI                             |
+| `--fix`        | boolean | `false`         | Tạo file thiếu và refresh file generated đã cũ              |
+| `--dry-run`    | boolean | `false`         | Với `--fix`, preview thay đổi và không ghi file             |
+| `--force`      | boolean | `false`         | Với `--fix`, overwrite untracked existing files             |
+| `--cursor`     | boolean | `false`         | Với `--fix`, include `.cursor/rules/ready-for-agents.mdc`   |
+| `--claude`     | boolean | `false`         | Với `--fix`, include `CLAUDE.md`                            |
+| `--all`        | boolean | `false`         | Với `--fix`, include toàn bộ optional agent files           |
+| `--index`      | boolean | config          | Với `--fix`, generate `.ready-for-agents/context-tree.json` |
+
+Nếu `.ready-for-agents.json` tồn tại, `doctor --fix` dùng `doctor.fix.*` kết hợp `files.*` làm default. Flag CLI được ưu tiên hơn config.
 
 ### Exit codes
 
@@ -175,7 +187,7 @@ agent-context-kit update --cwd /absolute/path/to/app
 
 ### Output (stdout)
 
-**Header:** `agent-context-kit doctor`
+**Header:** `ready-for-agents doctor`
 
 **Checks:** từng dòng với prefix 2 spaces:
 
@@ -222,7 +234,12 @@ Khi dùng `--fix --json`, object có thêm `fix`:
 
 ```ts
 type DoctorFixJsonOutput =
-  | { ran: false; ok: false; reason: "critical-failure" }
+  | {
+      ran: false;
+      ok: false;
+      reason: "critical-failure" | "config-error";
+      error?: string;
+    }
   | {
       ran: true;
       mode: "dry-run";
@@ -231,6 +248,7 @@ type DoctorFixJsonOutput =
       wouldGenerate: OutputFile[];
       wouldOverwrite: OutputFile[];
       wouldSkipUntracked: OutputFile[];
+      wouldGenerateIndex?: string;
     }
   | {
       ran: true;
@@ -239,6 +257,7 @@ type DoctorFixJsonOutput =
       created: OutputFile[];
       overwritten: OutputFile[];
       skippedUntracked: OutputFile[];
+      index?: { output: string; written: boolean };
     };
 ```
 
@@ -268,42 +287,54 @@ Score: 0/1 · 0 warnings · 1 failure
 ### Ví dụ
 
 ```bash
-agent-context-kit doctor
-agent-context-kit doctor --fix --dry-run
-agent-context-kit doctor --fix
-agent-context-kit doctor --fix --json
-agent-context-kit doctor --cwd /Users/you/projects/my-app
-agent-context-kit doctor --json
+ready-for-agents doctor
+ready-for-agents doctor --fix --dry-run
+ready-for-agents doctor --fix
+ready-for-agents doctor --fix --json
+ready-for-agents doctor --fix --index
+ready-for-agents doctor --cwd /Users/you/projects/my-app
+ready-for-agents doctor --json
 ```
 
 ---
 
-## 5. Subcommand: `prompt`
+## 5. Subcommand: `prompt` / `p`
 
 **Mô tả:** Biến instruction thô thành prompt gọn, có cấu trúc, sẵn sàng cho agent — **không gọi AI API** (MVP).
 
 > Turn rough instructions into compact, structured agent-ready prompts.
 
+`p` là alias ngắn cho `prompt` với default `--context --compact`.
+
 ### Options (MVP)
 
-| Flag                      | Kiểu    | Mặc định | Mô tả                                       |
-| ------------------------- | ------- | -------- | ------------------------------------------- |
-| `[text]`                  | string  | —        | Instruction (positional argument)           |
-| `--stdin`                 | boolean | `false`  | Đọc instruction từ stdin (EOF = Ctrl+D)     |
-| `--file <path>`           | string  | —        | Đọc instruction từ file                     |
-| `--target <auto\|en\|vi>` | string  | `auto`   | Chọn instruction ngôn ngữ cho phần response |
-| `--json`                  | boolean | `false`  | In JSON thay vì Markdown                    |
-| `--stats`                 | boolean | `false`  | In thống kê độ dài ra stderr                |
+| Flag                      | Kiểu    | Mặc định | Mô tả                                        |
+| ------------------------- | ------- | -------- | -------------------------------------------- |
+| `[text]`                  | string  | —        | Instruction (positional argument)            |
+| `--stdin`                 | boolean | `false`  | Đọc instruction từ stdin (EOF = Ctrl+D)      |
+| `--file <path>`           | string  | —        | Đọc instruction từ file                      |
+| `--target <auto\|en\|vi>` | string  | config   | Chọn instruction ngôn ngữ cho phần response  |
+| `--context`               | boolean | config   | Chèn relevant context từ context tree        |
+| `--no-context`            | boolean | —        | Tắt relevant context lookup                  |
+| `--compact`               | boolean | config   | Render prompt ngắn hơn                       |
+| `--no-compact`            | boolean | —        | Ép style standard                            |
+| `--context-limit <n>`     | number  | config   | Số section context tối đa                    |
+| `--json`                  | boolean | `false`  | In JSON thay vì Markdown                     |
+| `--stats`                 | boolean | `false`  | In thống kê độ dài ra stderr                 |
+| `--cwd <path>`            | string  | cwd      | Thư mục dùng để đọc `.ready-for-agents.json` |
 
-**Planned:** `--style`, `--ai`.
+Nếu `--target`, `--context`, `--compact`, hoặc `--context-limit` không có, `prompt` dùng `prompt.*` trong config. Command `p` override default thành context + compact nếu config/flag không ghi đè.
+
+**Planned:** `--ai`.
 
 ### Exit codes
 
-| Code | Điều kiện                                 |
-| ---- | ----------------------------------------- |
-| `0`  | Có input hợp lệ sau normalize             |
-| `1`  | Input rỗng / chỉ filler                   |
-| `1`  | `--target` không thuộc `auto`, `en`, `vi` |
+| Code | Điều kiện                                  |
+| ---- | ------------------------------------------ |
+| `0`  | Có input hợp lệ sau normalize              |
+| `1`  | Input rỗng / chỉ filler                    |
+| `1`  | `--target` không thuộc `auto`, `en`, `vi`  |
+| `1`  | `--context` bật nhưng `--cwd` không hợp lệ |
 
 ### Output Markdown (mặc định)
 
@@ -316,8 +347,12 @@ Khi `--json`, stdout chỉ chứa object:
 ```ts
 type PromptJsonOutput = {
   target: "auto" | "en" | "vi";
+  style: "standard" | "compact";
   intent: PromptIntent;
   task: string;
+  relevantContext: PromptContextReference[];
+  contextSource?: "cache" | "live";
+  contextTreePath?: string;
   context: string[];
   requirements: string[];
   constraints: string[];
@@ -330,12 +365,16 @@ type PromptJsonOutput = {
 ### Ví dụ
 
 ```bash
-agent-context-kit prompt "kiểm tra doctor --json giúp tôi"
-agent-context-kit prompt --target en "sửa lỗi doctor --json giúp tôi"
-agent-context-kit prompt --target vi "Explain what prompt does"
-agent-context-kit prompt --stdin
-echo "review api" | agent-context-kit prompt --stdin --json
-agent-context-kit prompt --stats "fix login bug và chạy test"
+ready-for-agents prompt "kiểm tra doctor --json giúp tôi"
+ready-for-agents prompt "kiểm tra doctor --json giúp tôi" --context --compact
+ready-for-agents p "kiểm tra doctor --json giúp tôi"
+rfa p "kiểm tra doctor --json giúp tôi"
+ready-for-agents prompt --target en "sửa lỗi doctor --json giúp tôi"
+ready-for-agents prompt --target vi "Explain what prompt does"
+ready-for-agents prompt --stdin
+echo "review api" | ready-for-agents prompt --stdin --json
+ready-for-agents prompt --stats "fix login bug và chạy test"
+ready-for-agents prompt --cwd /absolute/path/to/app "Explain this task"
 ```
 
 `--target` là rule-based: flag này chỉ điều khiển instruction ngôn ngữ trong output, không gọi model dịch.
@@ -344,32 +383,177 @@ Chi tiết pipeline: [PROMPT_SPEC.md](./PROMPT_SPEC.md).
 
 ---
 
-## 6. Quy ước `--cwd`
+## 6. Subcommand: `config init`
+
+**Mô tả:** Tạo file config project `.ready-for-agents.json`.
+
+### Options
+
+| Flag           | Kiểu    | Mặc định        | Mô tả                                |
+| -------------- | ------- | --------------- | ------------------------------------ |
+| `--dry-run`    | boolean | `false`         | Preview config; không ghi file       |
+| `--force`      | boolean | `false`         | Ghi đè config đã tồn tại             |
+| `--cwd <path>` | string  | `process.cwd()` | Thư mục project để tạo config tại đó |
+
+### Config schema MVP
+
+```ts
+type ReadyForAgentsConfig = {
+  $schema?: string;
+  files?: {
+    cursor?: boolean;
+    claude?: boolean;
+    all?: boolean;
+    index?: boolean;
+  };
+  doctor?: {
+    fix?: {
+      cursor?: boolean;
+      claude?: boolean;
+      all?: boolean;
+      force?: boolean;
+      index?: boolean;
+    };
+  };
+  prompt?: {
+    target?: "auto" | "en" | "vi";
+  };
+  index?: {
+    output?: string;
+  };
+};
+```
+
+Config primary: `.ready-for-agents.json`.
+
+Tên legacy `.agent-context-kit.json` vẫn được đọc để tương thích, nhưng `config init` luôn tạo tên mới.
+
+### Ví dụ
+
+```bash
+ready-for-agents config init
+ready-for-agents config init --dry-run
+ready-for-agents config init --force
+ready-for-agents config init --cwd /absolute/path/to/app
+```
+
+---
+
+## 7. Subcommand: `index`
+
+**Mô tả:** Build context tree cache cho generated agent files.
+
+### Options
+
+| Flag              | Kiểu    | Mặc định              | Mô tả                                    |
+| ----------------- | ------- | --------------------- | ---------------------------------------- |
+| `--dry-run`       | boolean | `false`               | In metadata; không ghi file              |
+| `--json`          | boolean | `false`               | In JSON machine-readable; không ghi file |
+| `--output <path>` | string  | config `index.output` | Output path của context tree             |
+| `--cwd <path>`    | string  | `process.cwd()`       | Thư mục project cần index                |
+
+Default output: `.ready-for-agents/context-tree.json`.
+
+### JSON output
+
+```ts
+type IndexJsonOutput = {
+  ok: true;
+  output: string;
+  tree: ContextTree;
+};
+```
+
+`ContextTree` gồm project metadata, summary tổng, danh sách generated files, file hash, heading sections, anchors, keywords, commands, summary ngắn, và token estimate.
+
+### Ví dụ
+
+```bash
+ready-for-agents index
+ready-for-agents index --dry-run
+ready-for-agents index --json
+ready-for-agents index --output .cache/agent-context-tree.json
+ready-for-agents index --cwd /absolute/path/to/app
+```
+
+---
+
+## 8. Subcommand: `query`
+
+**Mô tả:** Chọn các section context liên quan nhất cho một task, dựa trên `.ready-for-agents/context-tree.json` khi có hoặc scan live các generated context files hiện tại.
+
+### Options
+
+| Flag            | Kiểu    | Mặc định              | Mô tả                                      |
+| --------------- | ------- | --------------------- | ------------------------------------------ |
+| `<text>`        | string  | required              | Task hoặc câu hỏi cần chọn context         |
+| `--cwd <path>`  | string  | `process.cwd()`       | Thư mục project cần query                  |
+| `--json`        | boolean | `false`               | In JSON machine-readable                   |
+| `--limit <n>`   | number  | `6`                   | Số section tối đa, clamp trong khoảng 1-20 |
+| `--tree <path>` | string  | config `index.output` | Path context tree muốn đọc                 |
+
+### JSON output
+
+```ts
+type QueryJsonOutput =
+  | {
+      ok: true;
+      cwd: string;
+      query: string;
+      source: "cache" | "live";
+      treePath: string;
+      summary: ContextTree["summary"];
+      matches: QueryMatch[];
+    }
+  | {
+      ok: false;
+      cwd: string;
+      query: string;
+      error: string;
+      matches: [];
+    };
+```
+
+### Ví dụ
+
+```bash
+ready-for-agents query "how should I verify this change?"
+ready-for-agents query "kiểm tra doctor hoạt động đúng chưa" --limit 4
+ready-for-agents query "show stack and dependencies" --json
+ready-for-agents query "fix build" --cwd /absolute/path/to/app
+```
+
+---
+
+## 9. Quy ước `--cwd`
 
 | Đúng                          | Sai                                      |
 | ----------------------------- | ---------------------------------------- |
 | `/Users/you/app`              | `cd/Users/you/app`                       |
 | `./my-app` (resolve relative) | path không tồn tại (doctor/init báo lỗi) |
 
-`path.resolve()` được gọi trong `runInit` / `runUpdate` / `runDoctor`.
+`path.resolve()` được gọi trong `runInit` / `runUpdate` / `runDoctor` / `runIndex` / `runQuery` / `runConfigInit`.
 
 ---
 
-## 7. Chạy trong development
+## 10. Chạy trong development
 
-| Lệnh                     | Tương đương                    |
-| ------------------------ | ------------------------------ |
-| `pnpm dev init [opts]`   | `tsx src/cli.ts init [opts]`   |
-| `pnpm start init [opts]` | `node dist/cli.js init [opts]` |
-| `pnpm dev update [opts]` | `tsx src/cli.ts update [opts]` |
-| `pnpm dev doctor [opts]` | `tsx src/cli.ts doctor [opts]` |
-| `pnpm dev prompt [opts]` | `tsx src/cli.ts prompt [opts]` |
+| Lệnh                          | Tương đương                         |
+| ----------------------------- | ----------------------------------- |
+| `pnpm dev init [opts]`        | `tsx src/cli.ts init [opts]`        |
+| `pnpm start init [opts]`      | `node dist/cli.js init [opts]`      |
+| `pnpm dev update [opts]`      | `tsx src/cli.ts update [opts]`      |
+| `pnpm dev doctor [opts]`      | `tsx src/cli.ts doctor [opts]`      |
+| `pnpm dev prompt [opts]`      | `tsx src/cli.ts prompt [opts]`      |
+| `pnpm dev index [opts]`       | `tsx src/cli.ts index [opts]`       |
+| `pnpm dev query [opts]`       | `tsx src/cli.ts query [opts]`       |
+| `pnpm dev config init [opts]` | `tsx src/cli.ts config init [opts]` |
 
 **pnpm:** `pnpm start doctor --cwd /path` — truyền args sau script `start` (không cần `--` trước `doctor`).
 
 ---
 
-## 8. Programmatic API
+## 11. Programmatic API
 
 Import từ package (xem [DATA_MODEL.md](./DATA_MODEL.md)):
 
@@ -378,9 +562,12 @@ import {
   runInit,
   runUpdate,
   runDoctor,
+  runIndex,
+  runQuery,
+  runConfigInit,
   runPrompt,
   buildPromptFromText,
-} from "agent-context-kit";
+} from "ready-for-agents";
 ```
 
-`runInit` / `runUpdate` / `runDoctor` / `runPrompt` trả `Promise<number>` exit code; CLI gọi `process.exit(code)`.
+`runInit` / `runUpdate` / `runDoctor` / `runIndex` / `runQuery` / `runConfigInit` / `runPrompt` trả `Promise<number>` exit code; CLI gọi `process.exit(code)`.

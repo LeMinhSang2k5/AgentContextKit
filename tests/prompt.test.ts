@@ -114,6 +114,16 @@ describe("buildPromptFromText", () => {
     expect(result!.brief.requirements.length).toBeGreaterThan(0);
   });
 
+  it("does not treat Vietnamese words after a flag as command values", () => {
+    const result = buildPromptFromText(
+      "kiểm tra doctor --json hoạt động đúng chưa",
+    );
+
+    expect(result!.brief.task).toContain("doctor --json");
+    expect(result!.brief.task).not.toContain("doctor --json hoạt");
+    expect(result!.brief.verify.join(" ")).not.toContain("doctor --json hoạt");
+  });
+
   it("extracts verify commands", () => {
     const result = buildPromptFromText(
       "review code. chạy pnpm typecheck và pnpm test và pnpm build",

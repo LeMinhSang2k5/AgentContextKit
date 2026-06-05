@@ -62,7 +62,7 @@ describe("runDoctorChecks", () => {
 
   it("fails early when cwd does not exist", () => {
     const result = runDoctorChecks(
-      join(tmpdir(), `missing-agent-context-kit-${randomUUID()}`),
+      join(tmpdir(), `missing-ready-for-agents-${randomUUID()}`),
     );
 
     expect(result.total).toBe(1);
@@ -252,7 +252,7 @@ describe("runDoctor --json", () => {
     };
 
     expect(code).toBe(0);
-    expect(out).not.toContain("agent-context-kit doctor");
+    expect(out).not.toContain("ready-for-agents doctor");
     expect(parsed.cwd).toBe(dir);
     expect(parsed.ok).toBe(true);
     expect(parsed.score.failed).toBe(0);
@@ -264,7 +264,7 @@ describe("runDoctor --json", () => {
   });
 
   it("returns exit 1 and ok false for critical failures", async () => {
-    const missing = join(tmpdir(), `missing-agent-context-kit-${randomUUID()}`);
+    const missing = join(tmpdir(), `missing-ready-for-agents-${randomUUID()}`);
     const { output } = captureConsole();
 
     const code = await runDoctor({ cwd: missing, json: true });
@@ -297,7 +297,7 @@ describe("runDoctor --fix", () => {
 
     expect(code).toBe(0);
     expect(readFileSync(join(dir, "AGENTS.md"), "utf-8")).toContain(
-      "agent-context-kit:generated",
+      "ready-for-agents:generated",
     );
     expect(existsSync(join(dir, "PROJECT_CONTEXT.md"))).toBe(true);
     expect(existsSync(join(dir, "COMMANDS.md"))).toBe(true);
@@ -373,7 +373,7 @@ describe("runDoctor --fix", () => {
       ok: true,
     });
     expect(parsed.fix.created).toContain("AGENTS.md");
-    expect(output()).not.toContain("agent-context-kit doctor");
+    expect(output()).not.toContain("ready-for-agents doctor");
   });
 
   it("does not run fixes when doctor has a critical failure", async () => {

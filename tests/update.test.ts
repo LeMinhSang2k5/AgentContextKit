@@ -100,7 +100,7 @@ describe("runUpdate", () => {
       "pnpm build",
     );
     expect(readFileSync(join(dir, "AGENTS.md"), "utf-8")).toContain(
-      "agent-context-kit:generated",
+      "ready-for-agents:generated",
     );
   });
 
@@ -160,8 +160,8 @@ describe("runUpdate", () => {
 
   it("--all refreshes optional Cursor and Claude files", async () => {
     const dir = makeProject("all", {
-      ".cursor/rules/agent-context-kit.mdc": withGeneratedMarker(
-        ".cursor/rules/agent-context-kit.mdc",
+      ".cursor/rules/ready-for-agents.mdc": withGeneratedMarker(
+        ".cursor/rules/ready-for-agents.mdc",
         "OLD_CURSOR\n",
       ),
       "CLAUDE.md": withGeneratedMarker("CLAUDE.md", "OLD_CLAUDE\n"),
@@ -171,7 +171,7 @@ describe("runUpdate", () => {
 
     expect(code).toBe(0);
     expect(
-      readFileSync(join(dir, ".cursor/rules/agent-context-kit.mdc"), "utf-8"),
+      readFileSync(join(dir, ".cursor/rules/ready-for-agents.mdc"), "utf-8"),
     ).toContain("alwaysApply: true");
     expect(readFileSync(join(dir, "CLAUDE.md"), "utf-8")).toContain(
       "# CLAUDE.md",

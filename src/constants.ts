@@ -2,6 +2,7 @@
 export const IGNORED_SCAN_DIRS = new Set([
   "node_modules",
   ".git",
+  ".ready-for-agents",
   "dist",
   "build",
   ".next",
