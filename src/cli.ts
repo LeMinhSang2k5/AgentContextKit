@@ -12,6 +12,7 @@ import { runConfigInit } from "./commands/config.js";
 import { runQuery } from "./commands/query.js";
 import { runCi } from "./commands/ci.js";
 import { runDiff } from "./commands/diff.js";
+import { runRunbook } from "./commands/runbook.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -217,6 +218,22 @@ program
       process.exit(code);
     },
   );
+
+program
+  .command("runbook")
+  .alias("r")
+  .description("Generate a privacy-safe RUNBOOK.md for reviving a project")
+  .option("--dry-run", "Preview RUNBOOK.md without writing files")
+  .option("--force", "Overwrite existing RUNBOOK.md")
+  .option("--cwd <path>", "Project directory", process.cwd())
+  .action(async (opts: { dryRun?: boolean; force?: boolean; cwd: string }) => {
+    const code = await runRunbook({
+      dryRun: opts.dryRun,
+      force: opts.force,
+      cwd: opts.cwd,
+    });
+    process.exit(code);
+  });
 
 program
   .command("index")

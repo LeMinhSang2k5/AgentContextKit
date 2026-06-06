@@ -20,6 +20,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
+    "docs:build": "tsx scripts/build-docs.ts",
+    "docs:preview": "tsx scripts/serve-docs.ts",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "prepublishOnly": "pnpm run build"
   },

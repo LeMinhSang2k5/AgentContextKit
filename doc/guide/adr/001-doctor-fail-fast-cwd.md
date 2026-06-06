@@ -1,4 +1,4 @@
-# ADR-001: Doctor dừng sớm khi `--cwd` không hợp lệ
+# ADR-001: Doctor Fails Fast For Invalid `--cwd`
 
 ## Status
 
@@ -6,39 +6,33 @@ Accepted
 
 ## Context
 
-User thường chạy:
+Users may run:
 
 ```bash
-rfa doctor --cwd /sai/duong/dan
+rfa doctor --cwd /wrong/path
 ```
 
-Nếu tiếp tục chạy đủ 11 check, mọi check file (`package.json`, context files, scripts) đều fail/warn vì path không phải project thật. Output dài và **che mất nguyên nhân gốc**: thư mục không tồn tại hoặc không phải directory.
+If `doctor` continued through every check, missing `package.json`, missing context files, and missing scripts would all be reported even though the real problem is simply that the directory does not exist or is not a project directory.
+
+That output would be noisy and misleading.
 
 ## Decision
 
-`runDoctorChecks` kiểm tra cwd **trước** mọi check khác:
+`runDoctorChecks` validates cwd before all other checks:
 
-1. `!existsSync(cwd)` → return 1 check fail, label `Project directory found`, detail `` `${cwd} does not exist` ``.
-2. `!stat.isDirectory()` → return 1 check fail, label `Project directory is a directory`.
+1. if the path does not exist, return one failing check labeled `Project directory found`;
+2. if the path exists but is not a directory, return one failing check labeled `Project directory is a directory`.
 
-Không gọi `resolvePackageManager`, không `existsSync` context files.
+No package manager detection, context-file checks, or script checks run after an invalid cwd.
 
 ## Consequences
 
-**Ưu:**
+### Positive
 
-- UX rõ: một dòng lỗi, `Score: 0/1`.
-- Nhanh hơn (ít syscall).
-- Test đơn giản (`total === 1`).
+- The root cause is immediately visible.
+- JSON output is easier for CI to interpret.
+- False secondary warnings are avoided.
 
-**Nhược:**
+### Negative
 
-- Label `Project directory found` khi fail hơi counter-intuitive (nhưng thống nhất với format `✗ label (detail)`).
-- Khác với `init` dùng `validateCwd` message — chấp nhận vì output format khác nhau.
-
-## Alternatives considered
-
-| Phương án                       | Lý do loại                                  |
-| ------------------------------- | ------------------------------------------- |
-| Chạy hết check, fail tất cả     | Noise, khó debug                            |
-| Chỉ in stderr, không check line | Không có score / không thống nhất doctor UX |
+- Users get less information in one run, but that information would not be meaningful until cwd is fixed.

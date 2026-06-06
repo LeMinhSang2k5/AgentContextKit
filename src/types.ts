@@ -60,6 +60,7 @@ export const OUTPUT_FILES = [
   "AGENTS.md",
   "PROJECT_CONTEXT.md",
   "COMMANDS.md",
+  "RUNBOOK.md",
   ".cursor/rules/ready-for-agents.mdc",
   "CLAUDE.md",
   ".github/copilot-instructions.md",

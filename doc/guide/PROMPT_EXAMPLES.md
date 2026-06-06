@@ -4,6 +4,8 @@ This suite is used to improve `rfa prompt` without adding AI API dependencies.
 
 It is not machine-learning training data. It is a deterministic rule-tuning suite: add real prompts, define expected intent/signals, convert the cases into tests, then tune the parser.
 
+> Language note: this guide is written in English. Raw prompt examples intentionally preserve the user's original language, including Vietnamese and mixed Vietnamese/English, because they are test corpus entries rather than explanatory documentation.
+
 ## How To Use
 
 - Keep examples close to real user wording, including typos and mixed Vietnamese/English.

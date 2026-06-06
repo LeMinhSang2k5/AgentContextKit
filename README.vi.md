@@ -29,64 +29,73 @@ CLI nhỏ quét project Node.js và sinh các file context cho **Cursor**, **Cod
 ## Bắt đầu nhanh
 
 ```bash
-npx --package ready-for-agents rfa init
+npx --package ready-for-agents -- rfa init
 ```
 
 Xem trước (nên dùng trước khi ghi file):
 
 ```bash
-npx --package ready-for-agents rfa init --dry-run
+npx --package ready-for-agents -- rfa init --dry-run
 ```
 
 Sinh file native cho Cursor, Claude Code và GitHub Copilot:
 
 ```bash
-npx --package ready-for-agents rfa init --cursor
-npx --package ready-for-agents rfa init --claude
-npx --package ready-for-agents rfa init --copilot
-npx --package ready-for-agents rfa init --all
+npx --package ready-for-agents -- rfa init --cursor
+npx --package ready-for-agents -- rfa init --claude
+npx --package ready-for-agents -- rfa init --copilot
+npx --package ready-for-agents -- rfa init --all
 ```
 
 Cập nhật lại các file context sau khi project thay đổi:
 
 ```bash
-npx --package ready-for-agents rfa update
-npx --package ready-for-agents rfa update --check
-npx --package ready-for-agents rfa update --check --json
-npx --package ready-for-agents rfa update --all
+npx --package ready-for-agents -- rfa update
+npx --package ready-for-agents -- rfa update --check
+npx --package ready-for-agents -- rfa update --check --json
+npx --package ready-for-agents -- rfa update --all
 ```
 
 Xem file context generated đang khác gì so với project hiện tại:
 
 ```bash
-npx --package ready-for-agents rfa diff
-npx --package ready-for-agents rfa diff --json
-npx --package ready-for-agents rfa diff --all
+npx --package ready-for-agents -- rfa diff
+npx --package ready-for-agents -- rfa diff --json
+npx --package ready-for-agents -- rfa diff --all
 ```
+
+Sinh runbook an toàn dữ liệu để mở lại project cũ:
+
+```bash
+npx --package ready-for-agents -- rfa runbook --dry-run
+npx --package ready-for-agents -- rfa runbook
+```
+
+`runbook` chỉ phát hiện tên biến môi trường từ source code và template an toàn như `.env.example`; lệnh này không đọc hoặc in giá trị trong `.env`, `.env.local`, hay các file `.env*` không phải template.
 
 Kiểm tra project đã sẵn sàng cho AI agent chưa (không ghi file):
 
 ```bash
-npx --package ready-for-agents rfa doctor
-npx --package ready-for-agents rfa doctor --fix --dry-run
-npx --package ready-for-agents rfa doctor --fix
-npx --package ready-for-agents rfa doctor --cwd /path/to/your-project
+npx --package ready-for-agents -- rfa doctor
+npx --package ready-for-agents -- rfa doctor --fix --dry-run
+npx --package ready-for-agents -- rfa doctor --fix
+npx --package ready-for-agents -- rfa doctor --cwd /path/to/your-project
 ```
 
 Sinh GitHub Actions workflow để check readiness và context freshness:
 
 ```bash
-npx --package ready-for-agents rfa ci
-npx --package ready-for-agents rfa ci --dry-run
+npx --package ready-for-agents -- rfa ci
+npx --package ready-for-agents -- rfa ci --dry-run
 ```
 
 Biến instruction thô thành prompt gọn, sẵn sàng cho agent (không gọi AI API):
 
 ```bash
-npx --package ready-for-agents rfa prompt "kiểm tra doctor --json giúp tôi"
-npx --package ready-for-agents rfa prompt "kiểm tra doctor --json giúp tôi" --context --compact
-npx --package ready-for-agents rfa prompt --target en "sửa lỗi doctor --json giúp tôi"
-echo "review api. chạy pnpm test" | npx --package ready-for-agents rfa prompt --stdin --json
+npx --package ready-for-agents -- rfa prompt "kiểm tra doctor --json giúp tôi"
+npx --package ready-for-agents -- rfa prompt "kiểm tra doctor --json giúp tôi" --context --compact
+npx --package ready-for-agents -- rfa prompt --target en "sửa lỗi doctor --json giúp tôi"
+echo "review api. chạy pnpm test" | npx --package ready-for-agents -- rfa prompt --stdin --json
 ```
 
 Sau khi install global, form ngắn dùng hằng ngày là:
@@ -98,21 +107,21 @@ rfa p "kiểm tra doctor --json hoạt động đúng chưa"
 Tạo config cục bộ để bớt phải gõ flag lặp lại:
 
 ```bash
-npx --package ready-for-agents rfa config init
+npx --package ready-for-agents -- rfa config init
 ```
 
 Sinh context tree cache gọn cho các file agent đã generated:
 
 ```bash
-npx --package ready-for-agents rfa index
-npx --package ready-for-agents rfa index --json
+npx --package ready-for-agents -- rfa index
+npx --package ready-for-agents -- rfa index --json
 ```
 
 Hỏi context tree agent nên đọc section nào trước:
 
 ```bash
-npx --package ready-for-agents rfa query "how should I verify this change?"
-npx --package ready-for-agents rfa query "kiểm tra doctor hoạt động đúng chưa" --json
+npx --package ready-for-agents -- rfa query "how should I verify this change?"
+npx --package ready-for-agents -- rfa query "kiểm tra doctor hoạt động đúng chưa" --json
 ```
 
 ### Bảng lệnh nhanh
@@ -127,6 +136,7 @@ Dùng lệnh đầy đủ khi viết docs, hướng dẫn hoặc debug. Dùng al
 | `rfa doctor`      | `rfa d`   | kiểm tra project đã sẵn sàng cho AI agent chưa | Chỉ khi dùng `--fix`                          |
 | `rfa diff`        | —         | so sánh context generated với project hiện tại | Không                                         |
 | `rfa ci`          | —         | tạo GitHub Actions workflow cho agent checks   | Có, trừ khi dùng `--dry-run`                  |
+| `rfa runbook`     | `rfa r`   | tạo hướng dẫn chạy lại project, không lộ secret | Có, trừ khi dùng `--dry-run`                  |
 | `rfa prompt`      | `rfa p`   | biến instruction thô thành prompt có cấu trúc  | Không                                         |
 | `rfa config init` | `rfa c i` | tạo `.ready-for-agents.json`                   | Có, trừ khi dùng `--dry-run`                  |
 | `rfa index`       | `rfa x`   | tạo `.ready-for-agents/context-tree.json`      | Có, trừ `--dry-run` hoặc `--json`             |
@@ -161,6 +171,7 @@ Sau `init`, thư mục gốc project có thể có:
 | `AGENTS.md`                              | Cách agent làm việc trong repo (quy tắc, folder, test)        |
 | `PROJECT_CONTEXT.md`                     | Stack, package manager, dependencies, ghi chú                 |
 | `COMMANDS.md`                            | Lệnh dev, build, test, lint và script liên quan               |
+| `RUNBOOK.md`                             | Hướng dẫn chạy lại project, không lộ secret (`runbook`)       |
 | `.cursor/rules/ready-for-agents.mdc`     | Cursor project rule tùy chọn (`init --cursor` hoặc `--all`)   |
 | `CLAUDE.md`                              | Hướng dẫn Claude Code tùy chọn (`init --claude` hoặc `--all`) |
 | `.github/copilot-instructions.md`        | GitHub Copilot repository instructions tùy chọn               |
@@ -175,6 +186,7 @@ my-app/
 ├── AGENTS.md              ← sinh tự động
 ├── PROJECT_CONTEXT.md     ← sinh tự động
 ├── COMMANDS.md            ← sinh tự động
+├── RUNBOOK.md             ← sinh bởi rfa runbook
 └── .ready-for-agents/
     └── context-tree.json  ← cache sinh tự động
 ```
@@ -186,7 +198,7 @@ my-app/
 **Chạy một lần (không cần cài global):**
 
 ```bash
-npx --package ready-for-agents rfa init
+npx --package ready-for-agents -- rfa init
 ```
 
 **pnpm:**
@@ -285,6 +297,19 @@ rfa ci
 rfa ci --dry-run
 rfa ci --force
 rfa ci --cwd /Users/you/projects/my-app
+```
+
+### Sinh runbook để mở lại project (`runbook`)
+
+`runbook` tạo `RUNBOOK.md` gồm setup, tên biến môi trường, scripts, runtime notes và checklist chạy lại project cũ.
+
+Privacy là mặc định: lệnh này không đọc hoặc in giá trị từ `.env`, `.env.local`, `.env.production`, hay các file `.env*` không phải template. Template an toàn như `.env.example` chỉ được dùng để lấy tên biến.
+
+```bash
+rfa runbook --dry-run
+rfa runbook
+rfa r --cwd /Users/you/projects/my-app
+rfa runbook --force
 ```
 
 ### Kết hợp flag
@@ -715,6 +740,7 @@ pnpm dev doctor --cwd /path/to/your-project
 pnpm dev doctor --fix --dry-run --cwd /path/to/your-project
 pnpm dev diff --cwd /path/to/your-project
 pnpm dev ci --dry-run --cwd /path/to/your-project
+pnpm dev runbook --dry-run --cwd /path/to/your-project
 pnpm dev config init --dry-run --cwd /path/to/your-project
 pnpm dev index --dry-run --cwd /path/to/your-project
 pnpm dev query "kiểm tra thay đổi này thế nào?" --cwd /path/to/your-project
@@ -730,6 +756,17 @@ pnpm --silent start doctor --json --cwd /path/to/your-project
 
 Phát hành: [CHANGELOG.md](./CHANGELOG.md) · Publish: [PUBLISH_CHECKLIST.md](./PUBLISH_CHECKLIST.md)
 
+### Trang documentation
+
+Trang docs phong cách research được sinh từ `doc/guide` sang `site/`.
+
+```bash
+pnpm docs:build
+pnpm docs:preview
+```
+
+GitHub Pages deploy qua `.github/workflows/docs.yml`. Trong repository settings, đặt Pages source là **GitHub Actions**.
+
 ---
 
 ## Roadmap
@@ -743,6 +780,7 @@ Phát hành: [CHANGELOG.md](./CHANGELOG.md) · Publish: [PUBLISH_CHECKLIST.md](.
 - `rfa update` — refresh context sau khi repo thay đổi
 - `rfa diff` — so sánh context generated với project hiện tại
 - `rfa ci` — sinh GitHub Actions checks cho readiness và context freshness
+- `rfa runbook` — sinh hướng dẫn chạy lại project cũ, không lộ secret
 - `.ready-for-agents.json` — default cho optional files, prompt target, index output
 - `rfa index` — context tree cache gọn cho file agent generated
 - `rfa query` — chọn section context liên quan trước khi đọc full file

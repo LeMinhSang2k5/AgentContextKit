@@ -1,88 +1,89 @@
-# Roadmap sản phẩm
+# Product Roadmap
 
-Đồng bộ với [README.md](../../README.md#roadmap). Chi tiết FR planned: [REQUIREMENTS.md](./REQUIREMENTS.md#fr-planned--roadmap).
-
----
-
-## Đã ship (v0.2.x)
-
-| Tính năng                | Mô tả ngắn                                                      |
-| ------------------------ | --------------------------------------------------------------- |
-| `init`                   | Sinh `AGENTS.md`, `PROJECT_CONTEXT.md`, `COMMANDS.md`           |
-| `init --dry-run`         | Preview không ghi disk                                          |
-| `init --force`           | Ghi đè file output                                              |
-| Static detect            | PM, stack, scripts, folders                                     |
-| `doctor`                 | 11 check + score; fail-fast cwd                                 |
-| Safe writes              | Skip file đã tồn tại                                            |
-| `prompt`                 | Instruction thô → prompt có cấu trúc (không AI API)             |
-| `prompt --json`          | JSON cho automation                                             |
-| `prompt --file`          | Đọc instruction từ file                                         |
-| `prompt --target`        | Chọn instruction ngôn ngữ `auto`, `en`, hoặc `vi`               |
-| `prompt` (interactive)   | Interactive mode khi không có arg và stdin là TTY               |
-| `.cursor/rules`          | Cursor project rule tùy chọn qua `init --cursor` hoặc `--all`   |
-| `CLAUDE.md`              | Claude Code guidance tùy chọn qua `init --claude` hoặc `--all`  |
-| `.github/copilot-instructions.md` | GitHub Copilot instructions qua `init --copilot` hoặc `--all` |
-| `update`                 | Refresh generated context files sau khi repo đổi                |
-| `update --check --json`  | Machine-readable freshness check cho CI                         |
-| `diff`                   | So sánh generated context với project hiện tại                  |
-| `ci`                     | Sinh GitHub Actions workflow cho readiness/context freshness    |
-| Generated marker/hash    | Bảo vệ file user tự viết khi chạy `update`                      |
-| `doctor --fix`           | Doctor có thể tạo/refresh context files an toàn                 |
-| `.ready-for-agents.json` | Config project cho default optional files, prompt target, index |
-| `index`                  | Context tree cache `.ready-for-agents/context-tree.json`        |
+This roadmap summarizes shipped work and planned directions. Detailed functional requirements live in [REQUIREMENTS.md](./REQUIREMENTS.md).
 
 ---
 
-## Đang plan
+## Shipped In v0.2.x
 
-### Prompt (sau MVP)
-
-| Version | Item                                                     |
-| ------- | -------------------------------------------------------- |
-| v0.2    | `--style codex\|cursor\|claude`, token estimate chi tiết |
-| v0.3    | `--ai` rewrite opt-in, `--budget`, `--preserve-language` |
-
----
-
-## Đang plan (khác)
-
-### P1 — Cận hạn trước
-
-| Item                  | Lợi ích                                                   | Phụ thuộc spec |
-| --------------------- | --------------------------------------------------------- | -------------- |
-| `query` / `search`    | Tìm section liên quan trong context tree trước khi đọc MD | CLI_SPEC       |
-| Config schema publish | Cho editor autocomplete `.ready-for-agents.json`          | DATA_MODEL     |
-
-### P2 — Mở rộng agent ecosystem
-
-| Item          | Lợi ích                 |
-| ------------- | ----------------------- |
-| GitHub Action | CI keep context in sync |
-
-### P3 — Ngôn ngữ & AI
-
-| Item                      | Lợi ích                                     |
-| ------------------------- | ------------------------------------------- |
-| Python / FastAPI / Django | Ngoài Node-only                             |
-| Optional AI summaries     | Richer PROJECT_CONTEXT (cần API key policy) |
+| Feature | Summary |
+| --- | --- |
+| `init` | Generate `AGENTS.md`, `PROJECT_CONTEXT.md`, and `COMMANDS.md` |
+| `init --dry-run` | Preview generated files without writing |
+| `init --force` | Overwrite selected generated outputs intentionally |
+| Static detection | Package manager, stack, scripts, folders |
+| `doctor` | Readiness checks, score output, and fail-fast cwd validation |
+| `doctor --json` | Machine-readable readiness output for CI |
+| `doctor --fix` | Generate/refresh missing or stale generated context safely |
+| `update` | Refresh tracked generated context files |
+| `update --check --json` | Machine-readable freshness checks |
+| Generated marker/hash | Distinguish generated files from user-authored files |
+| `.cursor/rules` | Cursor project rule generator |
+| `CLAUDE.md` | Claude Code guidance generator |
+| `.github/copilot-instructions.md` | GitHub Copilot instructions generator |
+| `diff` | Compare generated context with current project state |
+| `ci` | Generate GitHub Actions workflow for readiness/freshness checks |
+| `prompt` | Rule-based prompt compiler with no AI API |
+| `prompt --json` | Machine-readable prompt output |
+| `prompt --file` and stdin | Multiple prompt input sources |
+| `prompt --target` | Response language instruction: `auto`, `en`, or `vi` |
+| `rfa p` | Short prompt alias with context + compact defaults |
+| `.ready-for-agents.json` | Project-level defaults for optional files, prompt, and index |
+| `index` | Context tree cache |
+| `query` | Select relevant generated context sections |
+| `runbook` | Privacy-safe project revival guide |
+| GitHub Pages docs site | Static research-style documentation generated from `doc/guide` |
 
 ---
 
-## Nguyên tắc ưu tiên
+## Planned: Prompt
 
-1. **Static-first** — không phụ thuộc network cho core path.
-2. **Safe by default** — không ghi đè; doctor không mutate.
-3. **Spec trước code** — cập nhật `doc/guide` khi đổi contract.
-4. **Test theo FR** — mỗi FR mới có test map trong REQUIREMENTS.
+| Priority | Item | Why |
+| --- | --- | --- |
+| P1 | `--style codex\|cursor\|claude` | Tailor prompt output for specific agent environments |
+| P1 | More detailed token budget reporting | Help users understand prompt length tradeoffs |
+| P2 | `compare`, `plan`, `implement` intents | Improve task-specific prompt structure |
+| P3 | `--ai` rewrite opt-in | Optional semantic rewrite after deterministic baseline is trusted |
 
 ---
 
-## Versioning (đề xuất)
+## Planned: Project Revival
 
-| Bump  | Khi nào                                               |
-| ----- | ----------------------------------------------------- |
-| PATCH | Fix detect, wording template                          |
-| MINOR | Lệnh mới backward-compatible, thêm doctor check warn  |
-| MAJOR | Đổi format file sinh bắt buộc, bỏ flag, đổi exit code |
+| Priority | Item | Why |
+| --- | --- | --- |
+| P1 | `rfa docker --dry-run` | Generate Dockerfile / compose guidance from detected stack |
+| P1 | Docker privacy model | Ensure env placeholders never leak real secrets |
+| P2 | `rfa seed --dry-run` | Generate sample data templates for local development |
+| P3 | `rfa revive --dry-run` | Compose runbook, docker, seed, doctor, and index workflows |
 
-`CHANGELOG.md` đã có; khi release chỉ cần chuyển mục `[Unreleased]` sang version cụ thể và tag tương ứng.
+---
+
+## Planned: Detection
+
+| Priority | Item | Why |
+| --- | --- | --- |
+| P1 | Config schema publishing | Editor autocomplete for `.ready-for-agents.json` |
+| P2 | Workspace/monorepo awareness | Support larger repositories safely |
+| P2 | Python / FastAPI / Django detection | Expand beyond Node.js projects |
+| P3 | Optional AI summaries | Richer project summaries with explicit opt-in and API key policy |
+
+---
+
+## Prioritization Principles
+
+1. **Static-first:** core paths should work offline and without credentials.
+2. **Safe by default:** no overwrite, no secret reads, no execution without explicit user action.
+3. **Spec before code:** update requirements and CLI contracts with behavior changes.
+4. **Tests by contract:** every shipped feature should have focused acceptance tests.
+
+---
+
+## Versioning Guidance
+
+| Bump | Use When |
+| --- | --- |
+| PATCH | Bug fix, detection wording, doc polish |
+| MINOR | Backward-compatible command or output addition |
+| MAJOR | Breaking generated file format, removed flags, changed exit semantics |
+
+Release history lives in [CHANGELOG.md](../../CHANGELOG.md).

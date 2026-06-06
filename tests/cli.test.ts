@@ -33,6 +33,7 @@ describe("CLI entrypoint", () => {
     expect(output).toContain("update|u");
     expect(output).toContain("ci");
     expect(output).toContain("diff");
+    expect(output).toContain("runbook|r");
     expect(output).toContain("index|x");
     expect(output).toContain("query|q");
     expect(output).toContain("config|c");
@@ -45,6 +46,7 @@ describe("CLI entrypoint", () => {
     { args: ["p", "--help"], expected: "Usage: rfa p" },
     { args: ["ci", "--help"], expected: "Usage: rfa ci" },
     { args: ["diff", "--help"], expected: "Usage: rfa diff" },
+    { args: ["r", "--help"], expected: "Usage: rfa runbook|r" },
     { args: ["x", "--help"], expected: "Usage: rfa index|x" },
     { args: ["q", "--help"], expected: "Usage: rfa query|q" },
     { args: ["c", "i", "--help"], expected: "Usage: rfa config init|i" },

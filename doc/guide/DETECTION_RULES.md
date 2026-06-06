@@ -1,188 +1,165 @@
-# Đặc tả quy tắc phát hiện (Detection Rules)
+# Detection Rules
 
-Mọi rule **tĩnh** — chỉ đọc metadata project, không chạy `npm ls` hay build.
+All detection rules are static. The CLI does not run package manager commands, builds, tests, or AI APIs to infer project facts.
 
-Implementation: `src/detectors/`, `src/constants.ts`.
+Implementation lives in `src/detectors/` and `src/constants.ts`.
 
 ---
 
-## 1. Package manager
+## 1. Package Manager
 
-### 1.1 Thứ tự ưu tiên
+Detection priority:
 
 ```text
-lockfile (first match) → package.json "packageManager" → npm (fallback)
+lockfile → package.json packageManager field → npm fallback
 ```
 
-### 1.2 Lockfile scan order
+### Lockfile Order
 
-| Thứ tự | File                | PM   |
-| ------ | ------------------- | ---- |
-| 1      | `pnpm-lock.yaml`    | pnpm |
-| 2      | `yarn.lock`         | yarn |
-| 3      | `bun.lockb`         | bun  |
-| 4      | `bun.lock`          | bun  |
-| 5      | `package-lock.json` | npm  |
+| Order | File | Package Manager |
+| --- | --- | --- |
+| 1 | `pnpm-lock.yaml` | pnpm |
+| 2 | `yarn.lock` | yarn |
+| 3 | `bun.lockb` | bun |
+| 4 | `bun.lock` | bun |
+| 5 | `package-lock.json` | npm |
 
-Chỉ `existsSync` tại `join(cwd, file)` — không parse nội dung lockfile.
+Only file presence is checked; lockfile contents are not parsed.
 
-### 1.3 Field `packageManager`
+### `packageManager` Field
 
-- Format: `"pnpm@9.0.0"`, `"yarn@berry"`, …
-- Lấy phần trước `@` đầu tiên, lowercase.
-- Hợp lệ: `npm`, `pnpm`, `yarn`, `bun`.
+Values such as `"pnpm@10.12.4"` are parsed by taking the package manager name before the first `@`.
 
-### 1.4 Fallback
+Supported names: `npm`, `pnpm`, `yarn`, `bun`.
 
-- `manager: "npm"`, `source: "fallback"`.
-- `doctor`: **warn** (không fail).
-- Generators: label có thể ghi `(fallback)` hoặc note trong PROJECT_CONTEXT.
+If no evidence exists, the result is `npm` with source `fallback`.
 
 ---
 
-## 2. Stack detection
+## 2. Stack Detection
 
-### 2.1 Cơ chế
+Stack detection merges `dependencies` and `devDependencies`, then evaluates ordered rule tables for each layer.
 
-- Gộp `dependencies` + `devDependencies` thành một map.
-- Mỗi **layer** (frontend, backend, database) chạy danh sách rule **theo thứ tự**.
-- Rule khớp khi **mọi** package trong `deps[]` có mặt (`hasDeps`).
-- **First match wins** — không gộp nhiều rule trong cùng layer.
+First matching rule wins.
 
-### 2.2 Frontend rules (thứ tự)
+### Frontend Rules
 
-| deps (all required) | label       |
-| ------------------- | ----------- |
-| `next`              | Next.js     |
-| `nuxt`              | Nuxt        |
-| `vite`, `react`     | React/Vite  |
-| `vite`, `vue`       | Vue/Vite    |
-| `react-scripts`     | React (CRA) |
-| `react`             | React       |
-| `vue`               | Vue         |
-| `svelte`            | Svelte      |
+| Dependencies | Label |
+| --- | --- |
+| `next` | Next.js |
+| `nuxt` | Nuxt |
+| `vite`, `react` | React/Vite |
+| `vite`, `vue` | Vue/Vite |
+| `react-scripts` | React (CRA) |
+| `react` | React |
+| `vue` | Vue |
+| `svelte` | Svelte |
 
-### 2.3 Backend rules (thứ tự)
+### Backend Rules
 
-| deps           | label   |
-| -------------- | ------- |
-| `@nestjs/core` | NestJS  |
-| `express`      | Express |
-| `fastify`      | Fastify |
-| `koa`          | Koa     |
-| `hono`         | Hono    |
+| Dependencies | Label |
+| --- | --- |
+| `@nestjs/core` | NestJS |
+| `express` | Express |
+| `fastify` | Fastify |
+| `koa` | Koa |
+| `hono` | Hono |
 
-### 2.4 Database rules (thứ tự)
+### Database Rules
 
-| deps             | label            |
-| ---------------- | ---------------- |
-| `mongoose`       | MongoDB/Mongoose |
-| `mongodb`        | MongoDB          |
-| `@prisma/client` | Prisma           |
-| `prisma`         | Prisma           |
-| `typeorm`        | TypeORM          |
-| `pg`             | PostgreSQL       |
-| `mysql2`         | MySQL            |
-| `better-sqlite3` | SQLite           |
-| `ioredis`        | Redis            |
-| `redis`          | Redis            |
-
-### 2.5 Summary strings
-
-| Hàm                     | Logic                                                     |
-| ----------------------- | --------------------------------------------------------- |
-| `stackFrameworkSummary` | `frontend.label + " + " + backend.label` hoặc `"Node.js"` |
-| `stackDatabaseSummary`  | `database?.label`                                         |
-| `isStackEmpty`          | không có layer nào                                        |
+| Dependencies | Label |
+| --- | --- |
+| `mongoose` | MongoDB/Mongoose |
+| `mongodb` | MongoDB |
+| `@prisma/client` | Prisma |
+| `prisma` | Prisma |
+| `typeorm` | TypeORM |
+| `pg` | PostgreSQL |
+| `mysql2` | MySQL |
+| `better-sqlite3` | SQLite |
+| `ioredis` | Redis |
+| `redis` | Redis |
 
 ---
 
-## 3. Script detection
+## 3. Script Detection
 
-### 3.1 Logical keys (`ScriptKey`)
+Logical script keys:
 
-`dev`, `build`, `test`, `lint`, `typecheck`, `format`
+```text
+dev | build | test | lint | typecheck | format
+```
 
-### 3.2 Aliases (first match in package.json)
+Aliases are evaluated in order. Example:
 
-| Key       | Aliases                                  |
-| --------- | ---------------------------------------- |
-| dev       | `dev`, `start:dev`, `develop`            |
-| build     | `build`                                  |
-| test      | `test`, `test:unit`, `test:run`          |
-| lint      | `lint`, `eslint`                         |
-| typecheck | `typecheck`, `type-check`, `check:types` |
-| format    | `format`, `prettier`, `fmt`              |
+| Key | Aliases |
+| --- | --- |
+| `dev` | `dev`, `start:dev`, `develop` |
+| `test` | `test`, `test:unit`, `test:run` |
+| `typecheck` | `typecheck`, `type-check`, `check:types` |
 
-### 3.3 Related dev scripts
+Related dev scripts are detected from:
 
-Nguồn:
-
-1. Keys trong `scripts` có prefix `dev:` (ví dụ `dev:client`).
-2. Tên script parse từ lệnh `dev` chính qua regex:
-   - `npm run <name>`
-   - `pnpm run <name>`
-   - `bun run <name>`
-   - `yarn run <name>`
-   - `yarn <name>` (loại trừ subcommand yarn như `install`, `add`, …)
-
-### 3.4 Run command template
-
-| PM   | Pattern                |
-| ---- | ---------------------- |
-| pnpm | `pnpm <scriptName>`    |
-| yarn | `yarn <scriptName>`    |
-| bun  | `bun run <scriptName>` |
-| npm  | `npm run <scriptName>` |
+1. script names starting with `dev:`;
+2. script references inside the main `dev` command, such as `npm run dev:server`.
 
 ---
 
-## 4. Important folders
+## 4. Important Folders
 
-### 4.1 Danh sách (`IMPORTANT_FOLDERS`)
+Root folder names checked:
 
-`src`, `app`, `pages`, `components`, `lib`, `tests`
+```text
+src, app, pages, components, lib, tests
+```
 
-### 4.2 Cách detect
+The detector only checks the project root. It does not recursively scan the repository.
 
-- Chỉ tại **project root**: `join(cwd, folderName)`.
-- `existsSync` + `statSync.isDirectory()`.
-- Bỏ qua nếu tên folder ∈ `IGNORED_SCAN_DIRS` (phòng trường hợp tên trùng).
+Ignored directory names:
 
-### 4.3 Ignored directory names (`IGNORED_SCAN_DIRS`)
-
-`node_modules`, `.git`, `.ready-for-agents`, `dist`, `build`, `.next`, `coverage`
-
-MVP **không** walk vào các folder này — chỉ dùng để filter tên và ghi trong AGENTS.md.
+```text
+node_modules, .git, .ready-for-agents, dist, build, .next, coverage
+```
 
 ---
 
-## 5. README detection
+## 5. README Detection
 
-- `hasReadme(cwd)`: `README.md` **hoặc** `README.MD` tại root.
-- Dùng trong generators (notes) và `doctor` (warn nếu thiếu).
-
----
-
-## 6. package.json đọc cho init
-
-| Field             | Map vào                       |
-| ----------------- | ----------------------------- |
-| `name`            | `ProjectContext.name`         |
-| `scripts`         | `ProjectContext.scripts`      |
-| `dependencies`    | `dependencies`                |
-| `devDependencies` | `devDependencies`             |
-| `packageManager`  | input `resolvePackageManager` |
-
-Thiếu `package.json` → `readProject` trả context rỗng; `init` fail validation.
+`hasReadme(cwd)` checks for `README.md` or `README.MD` at the project root.
 
 ---
 
-## 7. Thay đổi rule
+## 6. Environment Detection For `runbook`
 
-Khi thêm rule stack hoặc alias script:
+Implementation: `src/detectors/environment.ts`.
 
-1. Sửa detector tương ứng.
-2. Thêm case trong `tests/detectors.test.ts` hoặc `package-manager.test.ts`.
-3. Cập nhật file này và `README.md` bảng detect.
-4. Cân nhắc `doctor` nếu file/script mới là “bắt buộc” cho readiness.
+### Sources That May Be Read
+
+| Source | Rule |
+| --- | --- |
+| `.env.example`, `.env.sample`, `.env.template`, `.env.default`, `.env.dist` | Parse variable names on the left side of `=`; ignore values |
+| Source code in known roots | Extract static references such as `process.env.NAME`, `process.env["NAME"]`, `import.meta.env.NAME`, and `Deno.env.get("NAME")` |
+
+### Sources That Must Not Be Read For Values
+
+| Source | Rule |
+| --- | --- |
+| `.env`, `.env.local`, `.env.production`, `.env.development`, `.env.test` | Record filename only |
+| Any `.env*` file that is not clearly a template | Record filename only |
+
+### Safety Limits
+
+- Ignored directories are skipped.
+- Source file count and file size are bounded.
+- Results contain variable names, sources, and sensitivity signals, never values.
+
+---
+
+## 7. Updating Detection Rules
+
+When adding or changing a rule:
+
+1. update the detector module;
+2. add or update focused tests;
+3. update this document;
+4. update generated file specs if output changes.

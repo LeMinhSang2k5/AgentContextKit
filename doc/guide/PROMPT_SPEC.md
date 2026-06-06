@@ -1,95 +1,100 @@
-# Đặc tả lệnh `prompt`
+# Prompt Command Specification
 
-**Mục tiêu:** Biến instruction thô thành prompt gọn, có cấu trúc, sẵn sàng cho AI agent — **không gọi AI API** ở MVP.
+`rfa prompt` turns rough instructions into compact, structured, agent-ready prompts.
 
-> Turn rough instructions into compact, structured agent-ready prompts.
-
----
-
-## 1. Output sections
-
-| Section                           | Nội dung                                  |
-| --------------------------------- | ----------------------------------------- |
-| **Task**                          | Hành động chính agent phải làm            |
-| **Context**                       | Phạm vi / fact user **đã nói rõ**         |
-| **Requirements**                  | Những gì user muốn được trả lời / bao gồm |
-| **Constraints**                   | Quy tắc, giới hạn, điều agent phải tránh  |
-| **Verify**                        | Lệnh hoặc check agent nên chạy            |
-| **Unclear / Needs Clarification** | Chi tiết thiếu hoặc mơ hồ                 |
-| **Response**                      | Cách agent trả lời lại                    |
-
-**Quy tắc render:** section nào rỗng thì **không in**.
-
-### Nguyên tắc
-
-1. Không bịa capability.
-2. Không tự thêm fact nếu user không nói (Context chỉ từ input).
-3. Không chắc → **Unclear**.
-4. Câu hỏi → prompt yêu cầu agent **giải thích**, không tự trả lời thay agent.
-5. Task code → **Verify** khi phù hợp.
-6. Giữ intent gốc của user.
+The command is deterministic and does not call an AI API.
 
 ---
 
-## 2. CLI
+## 1. Output Sections
 
-| Lệnh                                    | Mô tả                        |
-| --------------------------------------- | ---------------------------- |
-| `rfa prompt "<text>"`      | Instruction từ argument      |
-| `rfa prompt --stdin`       | Đọc stdin                    |
-| `rfa prompt --file <path>` | Đọc file                     |
-| `rfa prompt --cwd <path>`  | Đọc config project           |
-| `rfa prompt`               | Interactive (TTY) hoặc stdin |
+| Section | Meaning |
+| --- | --- |
+| Task | The main action the agent should perform |
+| Context | Facts explicitly stated by the user |
+| Requirements | Requested details or deliverables |
+| Constraints | Limits, rules, or things to avoid |
+| Verify | Commands or checks the agent should run |
+| Unclear / Needs Clarification | Missing or ambiguous details |
+| Response | How the agent should answer |
 
-| Flag                      | Mô tả                                        |
-| ------------------------- | -------------------------------------------- |
-| `--target <auto\|en\|vi>` | Chọn instruction ngôn ngữ cho phần Response  |
-| `--json`                  | JSON thay Markdown                           |
-| `--stats`                 | Stats ra stderr                              |
-| `--cwd <path>`            | Thư mục dùng để đọc `.ready-for-agents.json` |
-
-Exit: `0` OK · `1` input rỗng sau normalize hoặc `--target` không hợp lệ.
-
-### Target language
-
-`--target` là rule-based, không gọi model dịch.
-
-Nếu không truyền `--target`, lệnh đọc `prompt.target` trong `.ready-for-agents.json`, rồi fallback về `auto`.
-
-| Value  | Hành vi                                                                         |
-| ------ | ------------------------------------------------------------------------------- |
-| `auto` | Mặc định; detect tiếng Việt trong input thì Response yêu cầu trả lời tiếng Việt |
-| `en`   | Response yêu cầu trả lời tiếng Anh                                              |
-| `vi`   | Response yêu cầu trả lời tiếng Việt                                             |
-
-Lưu ý: MVP chưa dịch toàn bộ `Task`, `Requirements`, `Constraints` sang target language. Flag này tập trung vào instruction ngôn ngữ để agent trả lời đúng hướng.
+Empty sections are omitted.
 
 ---
 
-## 3. Pipeline
+## 2. Principles
+
+1. Do not invent capabilities.
+2. Preserve the user's intent.
+3. Put uncertain details in `Unclear`.
+4. Treat questions as tasks for explanation, not as answers to fabricate.
+5. Add verification guidance when the task implies code changes.
+6. Keep the result compact enough to paste into an agent.
+
+---
+
+## 3. CLI
+
+| Command | Description |
+| --- | --- |
+| `rfa prompt "<text>"` | Read instruction from an argument |
+| `rfa prompt --stdin` | Read instruction from stdin |
+| `rfa prompt --file <path>` | Read instruction from a file |
+| `rfa prompt --cwd <path>` | Read project config and optional context |
+| `rfa p "<text>"` | Short alias with context + compact defaults |
+
+| Flag | Description |
+| --- | --- |
+| `--target <auto\|en\|vi>` | Response language instruction |
+| `--json` | Print JSON instead of Markdown |
+| `--stats` | Print size stats to stderr |
+| `--context` | Include relevant context sections |
+| `--compact` | Render shorter output |
+| `--context-limit <number>` | Limit relevant context sections |
+
+Exit code is `0` on success and `1` for empty input, invalid target, invalid file input, or conflicting input sources.
+
+---
+
+## 4. Target Language
+
+`--target` is rule-based. It does not translate the full prompt.
+
+| Value | Behavior |
+| --- | --- |
+| `auto` | Detect Vietnamese signals and choose response guidance accordingly |
+| `en` | Ask the downstream agent to answer in English |
+| `vi` | Ask the downstream agent to answer in Vietnamese |
+
+If omitted, config `prompt.target` is used, then `auto`.
+
+---
+
+## 5. Pipeline
 
 ```text
-readPromptInput → normalizePromptText → segmentPromptText
-  → classifyPromptIntent → extractPromptBrief → renderPromptBrief
+readPromptInput
+  → normalizePromptText
+  → segmentPromptText
+  → classifyPromptIntent
+  → extractPromptBrief
+  → renderPromptBrief
 ```
 
-### Module map
-
-| File           | Vai trò                                                |
-| -------------- | ------------------------------------------------------ |
-| `input.ts`     | argument / stdin / file / interactive                  |
-| `normalize.ts` | whitespace, filler an toàn                             |
-| `segment.ts`   | tách câu; bảo vệ `package.json`                        |
-| `classify.ts`  | intent: explain, review, fix, verify, clarify, general |
-| `extract.ts`   | `PromptBrief` từ segments + intent                     |
-| `render.ts`    | Markdown / JSON; bỏ section rỗng                       |
-| `stats.ts`     | char reduction, token estimate                         |
-
-**Sau MVP:** `compare`, `plan`, `implement`.
+| Module | Role |
+| --- | --- |
+| `input.ts` | argument, stdin, file, interactive input |
+| `normalize.ts` | whitespace and safe filler cleanup |
+| `segment.ts` | sentence/segment splitting and command extraction |
+| `classify.ts` | intent classification |
+| `extract.ts` | `PromptBrief` construction |
+| `context.ts` | relevant context lookup |
+| `render.ts` | Markdown and JSON rendering |
+| `stats.ts` | size and token estimates |
 
 ---
 
-## 4. Data model
+## 6. Data Model
 
 ```ts
 type PromptIntent =
@@ -118,49 +123,55 @@ type PromptBrief = {
 
 ---
 
-## 5. Ví dụ
+## 7. Examples
 
-### Explain (câu hỏi về `prompt`)
+### Explain
 
-**Input:**
+Input:
 
 ```text
-Vì sao tôi nên có tính prompt này, hãy hướng dẫn tôi sử dụng tính năng này, cấu trúc của nó như thế nào?
+Explain why `rfa prompt` is useful and how it is structured.
 ```
 
-**Output (rút gọn):**
+Expected signals:
 
-- **Task:** Explain why the `prompt` feature is useful, how to use it, and how it is structured.
-- **Context:** User asks about `prompt`; grounded in their project.
-- **Requirements:** why useful · how to use · output structure · grounded in project.
-- **Constraints:** do not invent capabilities; state limitations; rule-based.
-- **Response:** Answer in Vietnamese with concrete examples.
+- Task asks for explanation.
+- Requirements include purpose, usage, structure, and limitations.
+- Response should be concrete and project-aware.
 
-### Target English
+### Fix
 
-**Input:**
+Input:
 
-```bash
-rfa prompt --target en "sửa lỗi doctor --json giúp tôi"
+```text
+fix doctor --json output and run pnpm test
 ```
 
-**Output signal:**
+Expected signals:
 
-- **Response:** Answer in English with concrete examples.
+- Task asks for a code change.
+- Verify includes `pnpm test`.
+- Response should summarize changes and verification.
 
-### Clarify (mơ hồ)
+### Clarify
 
-**Input:** `làm cái này tốt hơn`
+Input:
 
-- **Task:** Improve the requested item.
-- **Unclear:** Which item? What does “better” mean?
-- **Response:** Ask concise clarification questions before making changes.
+```text
+make this better
+```
+
+Expected signals:
+
+- Task is vague.
+- `Unclear` asks what "this" refers to and what "better" means.
 
 ---
 
-## 6. Roadmap
+## 8. Roadmap
 
-| Version | Item                                                   |
-| ------- | ------------------------------------------------------ |
-| v0.2    | `--style`, token budget polish                         |
-| v0.3    | `--ai` rewrite, `compare`, `plan`, `implement` intents |
+| Version | Item |
+| --- | --- |
+| v0.2.x | Context + compact defaults |
+| v0.3.x | Style profiles, token budget polish |
+| Later | Optional AI rewrite, additional intents |

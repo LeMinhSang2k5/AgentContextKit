@@ -23,7 +23,7 @@ export type ContextTreeSection = {
 
 export type ContextTreeFile = {
   path: OutputFile;
-  kind: "core" | "cursor" | "claude" | "copilot" | "ci";
+  kind: "core" | "runbook" | "cursor" | "claude" | "copilot" | "ci";
   exists: boolean;
   hash?: string;
   bytes?: number;
@@ -229,6 +229,7 @@ function summarizeTree(files: ContextTreeFile[]): ContextTree["summary"] {
 }
 
 function fileKind(path: OutputFile): ContextTreeFile["kind"] {
+  if (path === "RUNBOOK.md") return "runbook";
   if (path === ".cursor/rules/ready-for-agents.mdc") return "cursor";
   if (path === "CLAUDE.md") return "claude";
   if (path === ".github/copilot-instructions.md") return "copilot";

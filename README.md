@@ -29,64 +29,73 @@ A small CLI that scans your Node.js project and generates context files for **Cu
 ## Quick start
 
 ```bash
-npx --package ready-for-agents rfa init
+npx --package ready-for-agents -- rfa init
 ```
 
 Preview first (recommended):
 
 ```bash
-npx --package ready-for-agents rfa init --dry-run
+npx --package ready-for-agents -- rfa init --dry-run
 ```
 
 Generate native agent files for Cursor, Claude Code, and GitHub Copilot:
 
 ```bash
-npx --package ready-for-agents rfa init --cursor
-npx --package ready-for-agents rfa init --claude
-npx --package ready-for-agents rfa init --copilot
-npx --package ready-for-agents rfa init --all
+npx --package ready-for-agents -- rfa init --cursor
+npx --package ready-for-agents -- rfa init --claude
+npx --package ready-for-agents -- rfa init --copilot
+npx --package ready-for-agents -- rfa init --all
 ```
 
 Refresh generated context files after your project changes:
 
 ```bash
-npx --package ready-for-agents rfa update
-npx --package ready-for-agents rfa update --check
-npx --package ready-for-agents rfa update --check --json
-npx --package ready-for-agents rfa update --all
+npx --package ready-for-agents -- rfa update
+npx --package ready-for-agents -- rfa update --check
+npx --package ready-for-agents -- rfa update --check --json
+npx --package ready-for-agents -- rfa update --all
 ```
 
 See how generated context differs from the current project:
 
 ```bash
-npx --package ready-for-agents rfa diff
-npx --package ready-for-agents rfa diff --json
-npx --package ready-for-agents rfa diff --all
+npx --package ready-for-agents -- rfa diff
+npx --package ready-for-agents -- rfa diff --json
+npx --package ready-for-agents -- rfa diff --all
 ```
+
+Generate a privacy-safe runbook for reviving an old project:
+
+```bash
+npx --package ready-for-agents -- rfa runbook --dry-run
+npx --package ready-for-agents -- rfa runbook
+```
+
+`runbook` detects environment variable names from source code and safe templates such as `.env.example`, but it does not read or print values from `.env`, `.env.local`, or other non-template `.env*` files.
 
 Check whether a project is ready for AI agents (no file writes):
 
 ```bash
-npx --package ready-for-agents rfa doctor
-npx --package ready-for-agents rfa doctor --fix --dry-run
-npx --package ready-for-agents rfa doctor --fix
-npx --package ready-for-agents rfa doctor --cwd /path/to/your-project
+npx --package ready-for-agents -- rfa doctor
+npx --package ready-for-agents -- rfa doctor --fix --dry-run
+npx --package ready-for-agents -- rfa doctor --fix
+npx --package ready-for-agents -- rfa doctor --cwd /path/to/your-project
 ```
 
 Generate a GitHub Actions workflow for readiness and context freshness checks:
 
 ```bash
-npx --package ready-for-agents rfa ci
-npx --package ready-for-agents rfa ci --dry-run
+npx --package ready-for-agents -- rfa ci
+npx --package ready-for-agents -- rfa ci --dry-run
 ```
 
 Turn a rough instruction into a compact, agent-ready prompt (no AI API):
 
 ```bash
-npx --package ready-for-agents rfa prompt "kiểm tra doctor --json giúp tôi"
-npx --package ready-for-agents rfa prompt "kiểm tra doctor --json giúp tôi" --context --compact
-npx --package ready-for-agents rfa prompt --target en "sửa lỗi doctor --json giúp tôi"
-echo "review api. run pnpm test" | npx --package ready-for-agents rfa prompt --stdin --json
+npx --package ready-for-agents -- rfa prompt "kiểm tra doctor --json giúp tôi"
+npx --package ready-for-agents -- rfa prompt "kiểm tra doctor --json giúp tôi" --context --compact
+npx --package ready-for-agents -- rfa prompt --target en "sửa lỗi doctor --json giúp tôi"
+echo "review api. run pnpm test" | npx --package ready-for-agents -- rfa prompt --stdin --json
 ```
 
 After global install, the short daily form is:
@@ -98,21 +107,21 @@ rfa p "kiểm tra doctor --json hoạt động đúng chưa"
 Create a local config so you can type fewer flags:
 
 ```bash
-npx --package ready-for-agents rfa config init
+npx --package ready-for-agents -- rfa config init
 ```
 
 Build a compact context tree cache for generated agent files:
 
 ```bash
-npx --package ready-for-agents rfa index
-npx --package ready-for-agents rfa index --json
+npx --package ready-for-agents -- rfa index
+npx --package ready-for-agents -- rfa index --json
 ```
 
 Ask the context tree which sections an agent should read first:
 
 ```bash
-npx --package ready-for-agents rfa query "how should I verify this change?"
-npx --package ready-for-agents rfa query "kiểm tra doctor hoạt động đúng chưa" --json
+npx --package ready-for-agents -- rfa query "how should I verify this change?"
+npx --package ready-for-agents -- rfa query "kiểm tra doctor hoạt động đúng chưa" --json
 ```
 
 ### Command map
@@ -127,6 +136,7 @@ Use the full command when teaching, documenting, or debugging. Use the alias whe
 | `rfa doctor`      | `rfa d`    | check whether a project is AI-agent-ready               | Only with `--fix`                               |
 | `rfa diff`        | —          | compare generated context with the current project      | No                                              |
 | `rfa ci`          | —          | create a GitHub Actions workflow for agent checks       | Yes, unless `--dry-run`                         |
+| `rfa runbook`     | `rfa r`    | create a privacy-safe project revival guide             | Yes, unless `--dry-run`                         |
 | `rfa prompt`      | `rfa p`    | turn a rough instruction into a structured agent prompt | No                                              |
 | `rfa config init` | `rfa c i`  | create `.ready-for-agents.json` defaults                | Yes, unless `--dry-run`                         |
 | `rfa index`       | `rfa x`    | build `.ready-for-agents/context-tree.json`             | Yes, unless `--dry-run` or `--json`             |
@@ -161,6 +171,7 @@ After `init`, your project root can include:
 | `AGENTS.md`                              | How agents should work in this repo (rules, folders, testing) |
 | `PROJECT_CONTEXT.md`                     | Stack, package manager, dependencies, notes                   |
 | `COMMANDS.md`                            | Dev, build, test, lint, and related scripts                   |
+| `RUNBOOK.md`                             | Privacy-safe setup/revival guide (`runbook`)                  |
 | `.cursor/rules/ready-for-agents.mdc`     | Optional Cursor project rule (`init --cursor` or `--all`)     |
 | `CLAUDE.md`                              | Optional Claude Code guidance (`init --claude` or `--all`)    |
 | `.github/copilot-instructions.md`        | Optional GitHub Copilot repository instructions               |
@@ -175,6 +186,7 @@ my-app/
 ├── AGENTS.md              ← generated
 ├── PROJECT_CONTEXT.md     ← generated
 ├── COMMANDS.md            ← generated
+├── RUNBOOK.md             ← generated by rfa runbook
 └── .ready-for-agents/
     └── context-tree.json  ← generated cache
 ```
@@ -186,7 +198,7 @@ my-app/
 **One-off (no install):**
 
 ```bash
-npx --package ready-for-agents rfa init
+npx --package ready-for-agents -- rfa init
 ```
 
 **pnpm:**
@@ -285,6 +297,19 @@ rfa ci
 rfa ci --dry-run
 rfa ci --force
 rfa ci --cwd /Users/you/projects/my-app
+```
+
+### Generate a project runbook (`runbook`)
+
+`runbook` creates `RUNBOOK.md` for returning to an old project: setup, environment variable names, scripts, runtime notes, and a revival checklist.
+
+Privacy is the default: it does not read or print values from `.env`, `.env.local`, `.env.production`, or other non-template `.env*` files. Safe templates such as `.env.example` are used only for variable names.
+
+```bash
+rfa runbook --dry-run
+rfa runbook
+rfa r --cwd /Users/you/projects/my-app
+rfa runbook --force
 ```
 
 ### Combine flags
@@ -715,6 +740,7 @@ pnpm dev doctor --cwd /path/to/your-project
 pnpm dev doctor --fix --dry-run --cwd /path/to/your-project
 pnpm dev diff --cwd /path/to/your-project
 pnpm dev ci --dry-run --cwd /path/to/your-project
+pnpm dev runbook --dry-run --cwd /path/to/your-project
 pnpm dev config init --dry-run --cwd /path/to/your-project
 pnpm dev index --dry-run --cwd /path/to/your-project
 pnpm dev query "how should I verify this change?" --cwd /path/to/your-project
@@ -730,6 +756,17 @@ pnpm --silent start doctor --json --cwd /path/to/your-project
 
 Release: [CHANGELOG.md](./CHANGELOG.md) · Publish: [PUBLISH_CHECKLIST.md](./PUBLISH_CHECKLIST.md)
 
+### Documentation site
+
+The research-style docs site is generated from `doc/guide` into `site/`.
+
+```bash
+pnpm docs:build
+pnpm docs:preview
+```
+
+GitHub Pages deploys through `.github/workflows/docs.yml`. In the repository settings, set Pages source to **GitHub Actions**.
+
 ---
 
 ## Roadmap
@@ -743,6 +780,7 @@ Release: [CHANGELOG.md](./CHANGELOG.md) · Publish: [PUBLISH_CHECKLIST.md](./PUB
 - `rfa update` — refresh generated context files after repo changes
 - `rfa diff` — compare generated context with the current project
 - `rfa ci` — generate GitHub Actions checks for readiness and context freshness
+- `rfa runbook` — generate a privacy-safe revival guide for old projects
 - `.ready-for-agents.json` — project defaults for optional files, prompt target, and index output
 - `rfa index` — compact context tree cache for generated agent files
 - `rfa query` — select relevant context sections before full reads

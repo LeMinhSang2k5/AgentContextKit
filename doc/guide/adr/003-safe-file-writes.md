@@ -1,4 +1,4 @@
-# ADR-003: Không ghi đè file context mặc định
+# ADR-003: Safe File Writes By Default
 
 ## Status
 
@@ -6,18 +6,30 @@ Accepted
 
 ## Context
 
-Sau `init`, user thường **chỉnh tay** `AGENTS.md` (quy tắc team). Ghi đè mỗi lần chạy lại sẽ mất customization.
+After running `init`, users often edit generated context files by hand. For example, teams may customize `AGENTS.md` with local rules.
+
+If the CLI overwrote those files on every run, it would destroy user work and make the tool unsafe for real repositories.
 
 ## Decision
 
-- `writeGeneratedFiles`: nếu file tồn tại và không `--force` → `skipped`.
-- `--dry-run` không bao giờ gọi `writeFileSync`.
-- Message terminal gợi ý `--force` khi skip.
+Default write behavior:
+
+- if a target file does not exist, create it;
+- if a target file exists and `--force` is not set, skip it;
+- if `--dry-run` is set, never write;
+- if `--force` is set, overwrite intentionally.
+
+`update` and `doctor --fix` are stricter: they refresh only files with valid generated markers unless `--force` is explicit.
 
 ## Consequences
 
-**Ưu:** An toàn cho production repos; phù hợp “chạy thử init”.
+### Positive
 
-**Nhược:** Refresh context cần nhớ `--force` hoặc chờ lệnh `update` (planned).
+- Safe for production repositories.
+- Users can preview before writing.
+- User-authored files are protected.
 
-**Liên quan:** `doctor` warn khi thiếu file — không tự tạo.
+### Negative
+
+- Users must explicitly choose refresh behavior.
+- A stale context file may remain stale until `update`, `doctor --fix`, or `--force` is used.

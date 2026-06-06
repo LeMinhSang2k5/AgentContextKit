@@ -1,89 +1,95 @@
-# Yêu cầu phi chức năng (Non-Functional Requirements)
+# Non-Functional Requirements
 
 ---
 
-## NFR-1 — Hiệu năng
+## NFR-1: Performance
 
-| ID      | Yêu cầu                                                | Cách đáp ứng                                           |
-| ------- | ------------------------------------------------------ | ------------------------------------------------------ |
-| NFR-1-1 | `doctor` hoàn thành trong vài giây trên project thường | Chỉ thao tác sync FS cố định; không đọc `node_modules` |
-| NFR-1-2 | `init` không quét recursive repo                       | Chỉ detect folder cố định ở root                       |
-| NFR-1-3 | Không spawn child process cho detect                   | Pure Node `fs` + `JSON.parse`                          |
-| NFR-1-4 | `index` nhẹ và deterministic                           | Chỉ đọc `OUTPUT_FILES`; không quét recursive           |
+| ID | Requirement | Implementation Strategy |
+| --- | --- | --- |
+| NFR-1-1 | `doctor` completes quickly on normal repositories | Uses bounded synchronous filesystem checks |
+| NFR-1-2 | `init` avoids recursive repository scans | Reads `package.json`, lockfiles, and known root folders |
+| NFR-1-3 | Detection does not spawn child processes | Uses Node `fs`, path utilities, and JSON parsing |
+| NFR-1-4 | `index` is deterministic and lightweight | Reads only known generated output files |
+| NFR-1-5 | `runbook` source scanning is bounded | Limits source file count and file size; ignores generated/heavy directories |
 
-**Không đảm bảo:** project có `package.json` cực lớn (> vài MB) vẫn đọc full vào memory.
-
----
-
-## NFR-2 — Tương thích
-
-| ID      | Yêu cầu                                         |
-| ------- | ----------------------------------------------- |
-| NFR-2-1 | Node.js **≥ 18**                                |
-| NFR-2-2 | ESM (`"type": "module"`)                        |
-| NFR-2-3 | macOS, Linux, Windows (path qua `node:path`)    |
-| NFR-2-4 | Project target: Node.js với `package.json` root |
+Large files can still be read if they are part of the explicit metadata path, such as a very large `package.json`.
 
 ---
 
-## NFR-3 — Bảo mật & an toàn
+## NFR-2: Compatibility
 
-| ID      | Yêu cầu                                                  |
-| ------- | -------------------------------------------------------- |
-| NFR-3-1 | Không thực thi script trong `package.json`               |
-| NFR-3-2 | Không upload source ra ngoài                             |
-| NFR-3-3 | `--dry-run` không ghi disk                               |
-| NFR-3-4 | Mặc định không ghi đè file user đã chỉnh (cần `--force`) |
-| NFR-3-5 | Không đọc `.env` / secrets (không nằm trong spec detect) |
-
----
-
-## NFR-4 — Độ tin cậy
-
-| ID      | Yêu cầu                                                                       |
-| ------- | ----------------------------------------------------------------------------- |
-| NFR-4-1 | Exit code nhất quán (0 success, 1 validation/critical fail/skipped untracked) |
-| NFR-4-2 | Message lỗi cwd/package.json rõ ràng                                          |
-| NFR-4-3 | `doctor` fail-fast cwd — tránh false signal                                   |
+| ID | Requirement |
+| --- | --- |
+| NFR-2-1 | Node.js 18 or newer |
+| NFR-2-2 | ESM package (`"type": "module"`) |
+| NFR-2-3 | macOS, Linux, and Windows path handling through `node:path` |
+| NFR-2-4 | Target project must be a Node.js project with a root `package.json` |
 
 ---
 
-## NFR-5 — Khả năng bảo trì
+## NFR-3: Security And Safety
 
-| ID      | Yêu cầu                                    |
-| ------- | ------------------------------------------ |
-| NFR-5-1 | TypeScript strict; `pnpm typecheck` pass   |
-| NFR-5-2 | Detect rules tách module `detectors/`      |
-| NFR-5-3 | Generators pure function `(ctx) => string` |
-| NFR-5-4 | Tài liệu `doc/guide/` đồng bộ với behavior |
-
----
-
-## NFR-6 — Khả năng mở rộng (giới hạn hiện tại)
-
-| Khía cạnh | Giới hạn MVP                                                            |
-| --------- | ----------------------------------------------------------------------- |
-| Ngôn ngữ  | Chỉ Node.js ecosystem                                                   |
-| Monorepo  | Không detect workspace con tự động                                      |
-| Config    | Chỉ project-level `.ready-for-agents.json`; không user/global config    |
-| Cache     | Chỉ project-level `.ready-for-agents/context-tree.json`; không database |
-| i18n CLI  | English output only                                                     |
+| ID | Requirement |
+| --- | --- |
+| NFR-3-1 | Do not execute scripts from `package.json` during detection |
+| NFR-3-2 | Do not upload project source |
+| NFR-3-3 | `--dry-run` never writes to disk |
+| NFR-3-4 | Existing user-authored files are preserved unless `--force` is explicit |
+| NFR-3-5 | Do not read secret values from `.env*` non-template files |
+| NFR-3-6 | `runbook` may emit environment variable names, never environment values |
+| NFR-3-7 | Core CLI paths do not call AI APIs or network services |
 
 ---
 
-## NFR-7 — Phụ thuộc runtime
+## NFR-4: Reliability
 
-| Package      | Vai trò                    |
-| ------------ | -------------------------- |
-| `commander`  | CLI parsing                |
-| `picocolors` | Terminal màu (init/doctor) |
-
-Dev: `typescript`, `vitest`, `tsx`, `prettier` — không ship vào user install (chỉ `dist/` + prod deps).
+| ID | Requirement |
+| --- | --- |
+| NFR-4-1 | Exit codes are consistent: `0` for success, `1` for validation/failure states |
+| NFR-4-2 | cwd and `package.json` errors are clear |
+| NFR-4-3 | `doctor` fails fast when cwd is invalid |
+| NFR-4-4 | JSON output modes print one parseable JSON object and no decorative terminal UI |
 
 ---
 
-## NFR-8 — Quan sát & debug
+## NFR-5: Maintainability
 
-- Không structured logging / telemetry.
-- Debug: chạy `pnpm dev` + breakpoint tại `readProject`, `generateAllFiles`, `runDoctorChecks`.
-- User-facing errors: stderr (init validation) hoặc check lines (doctor).
+| ID | Requirement |
+| --- | --- |
+| NFR-5-1 | TypeScript remains strict and `pnpm typecheck` passes |
+| NFR-5-2 | Detection rules live in `src/detectors/` |
+| NFR-5-3 | Generators are deterministic functions over explicit inputs |
+| NFR-5-4 | `doc/guide` stays in sync with behavior |
+| NFR-5-5 | New behavior should be backed by focused tests |
+
+---
+
+## NFR-6: Current Limits
+
+| Area | Current Limit |
+| --- | --- |
+| Languages | Node.js ecosystem only |
+| Monorepos | No automatic workspace traversal |
+| Config | Project-level `.ready-for-agents.json`; no global user config yet |
+| Cache | Project-level `.ready-for-agents/context-tree.json`; no database |
+| CLI i18n | User-facing CLI output is English |
+
+---
+
+## NFR-7: Runtime Dependencies
+
+| Package | Role |
+| --- | --- |
+| `commander` | CLI parsing |
+| `picocolors` | Terminal colors |
+
+Development dependencies such as `typescript`, `tsx`, `vitest`, and `prettier` are not production dependencies for users of the published CLI.
+
+---
+
+## NFR-8: Observability And Debugging
+
+- No telemetry.
+- No structured logging yet.
+- Debug locally with `pnpm dev`, breakpoints, and focused tests.
+- User-facing errors go to stderr for validation errors or structured check lines for `doctor`.

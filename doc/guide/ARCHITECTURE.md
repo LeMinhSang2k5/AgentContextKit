@@ -1,198 +1,167 @@
-# Kiến trúc hệ thống
+# Architecture
 
-CLI **ready-for-agents** theo mô hình **pipeline tĩnh**: đọc disk → model nội bộ → output (file hoặc report).
-
----
-
-## 1. Layered view
+`ready-for-agents` is a static pipeline:
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│  Presentation (CLI)                                      │
-│  cli.ts · picocolors · commander                         │
-├─────────────────────────────────────────────────────────┤
-│  Application                                             │
-│  commands/init.ts · commands/update.ts · commands/doctor │
-│  commands/prompt.ts · commands/config.ts · commands/index│
-│  commands/output                                         │
-├─────────────────────────────────────────────────────────┤
-│  Domain                                                  │
-│  doctor/checks · doctor/score                            │
-│  generators/* · detectors/* · indexer/*                  │
-├─────────────────────────────────────────────────────────┤
-│  Infrastructure                                          │
-│  fs/read-project · fs/write-files · fs/validate · config │
-├─────────────────────────────────────────────────────────┤
-│  Types & constants                                       │
-│  types.ts · constants.ts                                 │
-└─────────────────────────────────────────────────────────┘
+disk artifacts → internal model → generated output or report
 ```
+
+The architecture favors small modules, deterministic functions, and explicit command boundaries.
 
 ---
 
-## 2. Module dependency (allowed direction)
+## 1. Layered View
 
-```mermaid
-flowchart BT
-  CLI["cli.ts"]
-  INIT["commands/init"]
-  UPDATE["commands/update"]
-  DOC["commands/doctor"]
-  PROMPT["commands/prompt"]
-  CONFIGCMD["commands/config"]
-  INDEXCMD["commands/index"]
-  OUT["commands/output"]
-  CFG[config]
-  IDX[indexer]
-  GEN[generators]
-  DET[detectors]
-  FS[fs]
-  DR[doctor]
-  TYPES["types/constants"]
-
-  CLI --> INIT
-  CLI --> UPDATE
-  CLI --> DOC
-  CLI --> PROMPT
-  CLI --> CONFIGCMD
-  CLI --> INDEXCMD
-  INIT --> OUT
-  INIT --> GEN
-  INIT --> FS
-  INIT --> CFG
-  INIT --> IDX
-  UPDATE --> OUT
-  UPDATE --> GEN
-  UPDATE --> FS
-  UPDATE --> CFG
-  UPDATE --> IDX
-  DOC --> DR
-  DOC --> CFG
-  DOC --> IDX
-  INDEXCMD --> IDX
-  INDEXCMD --> CFG
-  CONFIGCMD --> CFG
-  GEN --> DET
-  GEN --> FS
-  DR --> DET
-  DR --> FS
-  FS --> DET
-  INIT --> TYPES
-  GEN --> TYPES
-  DET --> TYPES
-  DR --> TYPES
-  FS --> TYPES
-  CFG --> TYPES
-  IDX --> TYPES
+```text
+┌────────────────────────────────────────────────────┐
+│ Presentation                                        │
+│ cli.ts · commander · picocolors                     │
+├────────────────────────────────────────────────────┤
+│ Application                                         │
+│ commands/init · update · doctor · runbook · prompt  │
+│ commands/config · index · query · ci · diff         │
+├────────────────────────────────────────────────────┤
+│ Domain                                              │
+│ detectors · generators · doctor · prompt · query    │
+│ indexer                                            │
+├────────────────────────────────────────────────────┤
+│ Infrastructure                                      │
+│ fs/read-project · fs/write-files · fs/validate      │
+│ config/read                                        │
+└────────────────────────────────────────────────────┘
 ```
 
-**Quy tắc:**
-
-- `generators` không import `commands` hay `cli`.
-- `detectors` không import `generators`.
-- `doctor` không import `generators` (chỉ overlap detect PM qua `detectors`).
+Dependency direction should stay mostly top-down. Domain modules should not import CLI presentation concerns.
 
 ---
 
-## 3. Pipelines
+## 2. Command Pipelines
 
-### 3.1 Init pipeline
+### `init`
 
 ```text
 validateInitTarget
   → readReadyForAgentsConfig
-  → readProject → ProjectContext
-  → generateAllFiles → GeneratedFiles
-  → writeGeneratedFiles | printDryRunPreview
-  → optional buildContextTree → writeContextTree
+  → readProject
+  → generateAllFiles
+  → writeGeneratedFiles or dry-run preview
+  → optional buildContextTree
 ```
 
-### 3.2 Doctor pipeline
-
-```text
-resolve(cwd)
-  → runDoctorChecks → DoctorResult
-  → formatCheckLine × N + formatScore
-  → exit code from hasCriticalFailure
-```
-
-Không share `ProjectContext` giữa hai pipeline (doctor không gọi `readProject` full).
-
-### 3.3 Update pipeline
+### `update`
 
 ```text
 validateInitTarget
   → readReadyForAgentsConfig
-  → readProject → ProjectContext
-  → generateAllFiles → GeneratedFiles with marker/hash
+  → readProject
+  → generateAllFiles
   → checkGeneratedFiles
-  → JSON/text check | dry-run preview | write tracked files
-  → optional buildContextTree → writeContextTree
+  → writeUpdateFiles or JSON/check/dry-run
+  → optional buildContextTree
 ```
 
-`update` chỉ overwrite file có generated marker hợp lệ. File không có marker, marker sai path, hoặc hash lệch body được xem là user-authored/untracked và skip trừ khi có `--force`.
+### `diff`
 
----
+```text
+validateInitTarget
+  → readReadyForAgentsConfig
+  → readProject
+  → generateAllFiles
+  → checkGeneratedFiles
+  → createUnifiedDiff for outdated tracked files
+```
 
-### 3.4 Config pipeline
+### `ci`
 
 ```text
 validateCwd
-  → stringifyDefaultConfig
-  → write .ready-for-agents.json | dry-run preview
+  → generateGithubActionsWorkflow
+  → writeGeneratedFiles or dry-run preview
 ```
 
-### 3.5 Index pipeline
+### `runbook`
+
+```text
+validateInitTarget
+  → readProject
+  → detectEnvironmentUsage
+  → generateRunbookFile
+  → writeGeneratedFiles or dry-run preview
+```
+
+### `doctor`
+
+```text
+runDoctorChecks
+  → formatScore / JSON
+  → optional doctor --fix through generated-file update path
+```
+
+### `prompt`
+
+```text
+readPromptInput
+  → normalizePromptText
+  → segmentPromptText
+  → classifyPromptIntent
+  → optional lookupPromptContext
+  → extractPromptBrief
+  → renderPromptBrief / JSON
+```
+
+### `index`
 
 ```text
 validateInitTarget
   → readReadyForAgentsConfig
-  → readProject → ProjectContext
+  → readProject
   → buildContextTree
-  → writeContextTree | JSON output | dry-run metadata
+  → writeContextTree / JSON / dry-run metadata
 ```
 
-## 4. Extension points
+### `query`
 
-| Muốn thêm        | Chạm module                                                             |
-| ---------------- | ----------------------------------------------------------------------- |
-| Lệnh CLI mới     | `cli.ts` + `commands/`                                                  |
-| Check doctor     | `doctor/checks.ts`                                                      |
-| Rule stack       | `detectors/stack.ts` + tests                                            |
-| Section Markdown | `generators/*.ts`                                                       |
-| Output file mới  | `types.OUTPUT_FILES` + generator + marker/update + write-files + doctor |
-| Config default   | `config/types.ts` + `config/read.ts` + tests                            |
-| Context tree     | `indexer/context-tree.ts` + `commands/index.ts`                         |
+```text
+validate input
+  → loadContextTree or live generated-file scan
+  → selectContextSections
+  → render text or JSON
+```
 
 ---
 
-## 5. Build & distribution
+## 3. Extension Points
 
-| Artifact          | Mô tả                                                    |
-| ----------------- | -------------------------------------------------------- |
-| `dist/`           | `tsc` output; `bin` → `dist/cli.js`                      |
-| `doc/guide/`      | Đặc tả (README trong repo + tarball npm)                 |
-| `CHANGELOG.md`    | Lịch sử phiên bản (trong `files`)                        |
-| `files` field npm | `dist`, `doc/guide`, `CHANGELOG.md` (xem `package.json`) |
-
-npm **luôn** đính kèm `README.md`, `README.vi.md`, `LICENSE`, và `package.json` dù không liệt kê trong `files`. Publish checklist: [PUBLISH_CHECKLIST.md](../../PUBLISH_CHECKLIST.md). Link tương đối trong README tới `./doc/guide/...` hoạt động trên npmjs.com vì `doc/guide` nằm trong tarball.
-
-Runtime user: `npx --package ready-for-agents rfa` hoặc global install — không cần `src/`; có thể đọc docs tại `node_modules/ready-for-agents/doc/guide/`.
+| Change | Modules |
+| --- | --- |
+| New CLI command | `cli.ts`, `src/commands/*`, tests |
+| New detector rule | `src/detectors/*`, detector tests, docs |
+| New generated file | `types.OUTPUT_FILES`, generator, marker/update/diff/write/index paths |
+| New config default | `config/types.ts`, `config/read.ts`, config tests |
+| New prompt intent | `prompt/classify.ts`, `prompt/extract.ts`, prompt tests |
+| New query signal | `indexer/context-tree.ts`, `query/select.ts`, query tests |
 
 ---
 
-## 6. Testing architecture
+## 4. Distribution
 
-- **Unit:** detectors, doctor checks, validation (vitest).
-- **Fixture:** `mkdtempSync` + `package.json` tạm (`tests/doctor.test.ts`, init-safety).
-- **Generator contract:** Markdown spacing, fallback labels, trailing newline (`tests/generators.test.ts`).
-- **Config/index contract:** `tests/config-index.test.ts`.
-- **Không có:** E2E subprocess CLI trong CI (có thể thêm sau).
+| Artifact | Role |
+| --- | --- |
+| `dist/` | TypeScript build output and CLI binary target |
+| `doc/guide/` | Source technical documentation included in npm tarball |
+| `docs-site/` | Static site assets, not shipped as runtime CLI code |
+| `site/` | Generated GitHub Pages artifact, ignored by git |
+| `CHANGELOG.md` | Release history |
+| `PUBLISH_CHECKLIST.md` | Manual publish procedure |
 
-Xem [TEST_STRATEGY.md](./TEST_STRATEGY.md).
+The npm package always includes `README.md`, `README.vi.md`, `LICENSE`, and `package.json` even when not listed in the `files` array.
 
 ---
 
-## 7. ADR
+## 5. Testing Architecture
 
-Quyết định kiến trúc ghi tại [adr/](./adr/).
+- Unit tests cover detectors, scoring, prompt parsing, and query selection.
+- Fixture-style tests create temporary projects with `mkdtempSync`.
+- Command tests call command functions directly for deterministic stdout/disk behavior.
+- CLI entrypoint tests verify command aliases and help output.
+- Docs site build is verified with `pnpm docs:build` and local link checks.

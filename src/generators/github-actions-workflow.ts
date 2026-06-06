@@ -26,10 +26,10 @@ export function generateGithubActionsWorkflow(): string {
       "          node-version: 20",
       "",
       "      - name: Check agent readiness",
-      "        run: npx --package ready-for-agents rfa doctor --json --cwd .",
+      "        run: npx --package ready-for-agents -- rfa doctor --json --cwd .",
       "",
       "      - name: Check generated context freshness",
-      "        run: npx --package ready-for-agents rfa diff --json --cwd .",
+      "        run: npx --package ready-for-agents -- rfa diff --json --cwd .",
     ].join("\n"),
   );
 }

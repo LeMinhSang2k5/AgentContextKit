@@ -1,152 +1,133 @@
-# Tổng quan hệ thống — ready-for-agents
+# System Overview
 
-## 1. Định nghĩa
+## 1. Definition
 
-**ready-for-agents** là CLI Node.js giúp repository **sẵn sàng cho AI coding agent** bằng cách:
+**ready-for-agents** is a Node.js CLI that makes repositories easier for AI coding agents to inspect, modify, and verify.
 
-1. **Quét tĩnh** project (chủ yếu `package.json`, lockfile, folder gốc).
-2. **Sinh** hoặc **kiểm tra** các file Markdown context tại root project.
-3. **Cache** cấu trúc context dưới dạng tree JSON để agent có thể đọc chọn lọc hơn.
+It does this by:
 
-Không gọi API AI. Không quét đệ quy `node_modules` hay toàn bộ cây thư mục.
+1. statically reading high-signal project metadata such as `package.json`, lockfiles, root folders, and generated context files;
+2. generating or checking Markdown/YAML files that describe how an agent should work in the repository;
+3. building a compact context tree so agents can select relevant sections before opening full documents.
 
-## 2. Vấn đề giải quyết
+The core CLI does not call AI APIs, does not upload source code, and does not execute project scripts for detection.
 
-| Không có context                     | Có ready-for-agents                   |
-| ------------------------------------ | ------------------------------------- |
-| Agent đoán npm/pnpm                  | Đọc lockfile + `packageManager`       |
-| Agent bịa lệnh build/test            | Dùng script thật trong `package.json` |
-| Agent sửa nhầm lockfile              | `AGENTS.md` liệt kê file tránh chỉnh  |
-| Mỗi session phải giải thích lại repo | `PROJECT_CONTEXT.md` nằm trong repo   |
+---
 
-## 3. Phạm vi (MVP hiện tại)
+## 2. Problem Space
 
-### Trong phạm vi
+| Without a context layer | With `ready-for-agents` |
+| --- | --- |
+| Agents guess `npm` vs `pnpm` | Package manager is detected from lockfiles and `packageManager` |
+| Agents invent build/test commands | Commands come from real `package.json` scripts |
+| Agents edit unsafe files | `AGENTS.md` lists safety rules and files to avoid |
+| Users repeat repository context every session | Context files live in the repository |
+| Agents read every context file every turn | `index` and `query` provide targeted section lookup |
+| Old projects are hard to restart | `runbook` generates a privacy-safe revival guide |
 
-- Project **Node.js** có `package.json` tại root.
-- Lệnh `init`: sinh `AGENTS.md`, `PROJECT_CONTEXT.md`, `COMMANDS.md`; tùy chọn `.cursor/rules/ready-for-agents.mdc`, `CLAUDE.md` và `.github/copilot-instructions.md`.
-- Lệnh `diff`: so sánh generated context với project hiện tại, không ghi file.
-- Lệnh `ci`: sinh GitHub Actions workflow cho readiness và context freshness checks.
-- Lệnh `update`: refresh các file context generated sau khi repo đổi.
-- Lệnh `doctor`: kiểm tra readiness (11 check khi cwd hợp lệ); `--fix` sửa context files an toàn.
-- Lệnh `prompt`: cấu trúc instruction thô thành prompt agent-ready (rule-based).
-- Lệnh `config init`: tạo `.ready-for-agents.json` để lưu default project.
-- Lệnh `index`: tạo `.ready-for-agents/context-tree.json`.
-- Detect: package manager, stack (frontend/backend/database), scripts, folder gốc.
-- Ghi file an toàn (`--dry-run`, `--force`).
+---
 
-### Ngoài phạm vi (chưa implement)
+## 3. Current Scope
 
-- Python / monorepo đa ngôn ngữ.
-- Tóm tắt bằng LLM.
-- GitHub Action.
+### In Scope
 
-## 4. Các lệnh chính
+- Node.js projects with a root `package.json`.
+- `init`: generate `AGENTS.md`, `PROJECT_CONTEXT.md`, and `COMMANDS.md`.
+- Optional agent-native files for Cursor, Claude Code, and GitHub Copilot.
+- `update`: refresh generated context safely.
+- `diff`: compare generated context against current project state.
+- `ci`: generate a GitHub Actions workflow for readiness and freshness checks.
+- `runbook`: generate `RUNBOOK.md` without reading secret environment values.
+- `doctor`: check project readiness; `--fix` can repair generated context files.
+- `prompt`: compile rough user instructions into structured agent-ready prompts without an AI API.
+- `config init`: generate `.ready-for-agents.json`.
+- `index`: generate `.ready-for-agents/context-tree.json`.
+- `query`: select relevant generated context sections for a task.
+- Conservative static detection for package manager, stack, scripts, folders, and environment variable names.
 
-```mermaid
-flowchart TB
-  subgraph inputs [Input]
-    PJ["package.json"]
-    LF[lockfiles]
-    DEP[dependencies]
-    CWD["--cwd path"]
-  end
+### Out Of Scope For The Current MVP
 
-  subgraph init [init]
-    I1[readProject]
-    I2[generateAllFiles]
-    I3[writeGeneratedFiles]
-  end
+- Deep multi-language project analysis.
+- Automatic monorepo workspace discovery.
+- AI-generated summaries in the core path.
+- Running Docker containers, migrations, package scripts, or test commands automatically.
+- Reading secret values from `.env*` files.
 
-  subgraph update [update]
-    U1[readProject]
-    U2[generateAllFiles]
-    U3["check marker/hash"]
-    U4[write tracked files or JSON check]
-  end
+---
 
-  subgraph doctor [doctor]
-    D1[runDoctorChecks]
-    D2[terminal report or JSON]
-    D3["optional --fix"]
-  end
+## 4. Command Map
 
-  CWD --> I1
-  PJ --> I1
-  LF --> I1
-  DEP --> I1
-  I1 --> I2 --> I3
-  I3 --> OUT["Core files + optional agent files"]
-  I3 --> TREE[Context tree cache]
+| Command | Writes Files? | Purpose |
+| --- | --- | --- |
+| `init` | Yes, unless `--dry-run` | Create initial generated context files |
+| `update` | Yes, unless `--dry-run`, `--check`, or `--json` | Refresh tracked generated files |
+| `diff` | No | Show stale, missing, or untracked generated files |
+| `ci` | Yes, unless `--dry-run` | Create GitHub Actions readiness/freshness workflow |
+| `runbook` | Yes, unless `--dry-run` | Create a project revival guide without leaking secrets |
+| `doctor` | No, unless `--fix` | Check project readiness and optionally fix generated context |
+| `prompt` / `p` | No | Normalize rough instructions into agent-ready prompts |
+| `config init` | Yes, unless `--dry-run` | Create project-level CLI defaults |
+| `index` | Yes, unless `--dry-run` or `--json` | Build context tree cache |
+| `query` | No | Select relevant generated context sections |
 
-  CWD --> U1
-  PJ --> U1
-  LF --> U1
-  U1 --> U2 --> U3 --> U4
-  U4 --> OUT
-  U4 --> TREE
+---
 
-  CWD --> D1
-  PJ --> D1
-  LF --> D1
-  D1 --> D2 --> D3
-  D3 --> SCORE[Score + exit code]
-  D3 --> OUT
-  D3 --> TREE
-```
+## 5. Users
 
-| Lệnh          | Ghi disk?                                 | Mục đích                                          |
-| ------------- | ----------------------------------------- | ------------------------------------------------- |
-| `init`        | Có (trừ `--dry-run`)                      | Tạo file context lần đầu                          |
-| `update`      | Có (trừ `--dry-run`, `--check`, `--json`) | Refresh file context đã sinh                      |
-| `doctor`      | Không, trừ khi dùng `--fix`               | Báo thiếu gì và có thể sửa context files an toàn  |
-| `prompt`      | Không                                     | Cấu trúc instruction thô thành prompt agent-ready |
-| `config init` | Có (trừ `--dry-run`)                      | Tạo config project                                |
-| `index`       | Có (trừ `--dry-run`, `--json`)            | Tạo context tree cache                            |
+| Role | Primary Docs |
+| --- | --- |
+| End user | [README.md](../../README.md), [README.vi.md](../../README.vi.md) |
+| Maintainer | [ARCHITECTURE.md](./ARCHITECTURE.md), [SRC_WORKFLOW.md](./SRC_WORKFLOW.md) |
+| QA / integrator | [CLI_SPEC.md](./CLI_SPEC.md), [REQUIREMENTS.md](./REQUIREMENTS.md), [TEST_STRATEGY.md](./TEST_STRATEGY.md) |
+| Security reviewer | [SECURITY_MODEL.md](./SECURITY_MODEL.md), [NON_FUNCTIONAL.md](./NON_FUNCTIONAL.md) |
+| Agent reading a target repo | Generated files such as `AGENTS.md`, not this guide |
 
-## 5. Đối tượng sử dụng
+---
 
-| Vai trò                  | Dùng tài liệu                                          |
-| ------------------------ | ------------------------------------------------------ |
-| End user                 | `README.md`                                            |
-| Contributor / maintainer | `doc/guide/*`                                          |
-| QA / integrator          | `CLI_SPEC.md`, `REQUIREMENTS.md`                       |
-| Agent đọc repo target    | File sinh ra (`AGENTS.md`, …) — không phải `doc/guide` |
+## 6. Core Design Constraints
 
-## 6. Ràng buộc thiết kế cốt lõi
+1. **Static-first:** infer from files already on disk.
+2. **Safe by default:** do not overwrite user-authored files without explicit force.
+3. **Deterministic output:** the same project state should produce the same generated context.
+4. **Conservative detection:** prefer "not detected" over a confident but wrong label.
+5. **Privacy-first env handling:** detect variable names, not secret values.
+6. **Small composable commands:** keep `init`, `doctor`, `runbook`, `query`, and `prompt` independently useful.
+7. **Human and machine readability:** generated Markdown should be readable by people; JSON outputs should support CI and automation.
 
-1. **Static only** — mọi quyết định từ file có sẵn trên disk.
-2. **Single context object** — `ProjectContext` cho toàn bộ generators.
-3. **Safe writes** — không ghi đè file user tự viết; dry-run/check không chạm disk.
-4. **Fail-fast cwd** (`doctor`) — path sai → 1 check, không spam warn.
-5. **No deep scan** — chỉ `existsSync`/`statSync` tại path cố định.
+---
 
-## 7. Cấu trúc repo (CLI)
+## 7. Repository Structure
 
 ```text
-ready-for-agents/          # package CLI
+ready-for-agents/
 ├── src/
-│   ├── cli.ts              # Entry
-│   ├── commands/           # init, update, doctor, prompt, config, index
-│   ├── config/             # config reader/defaults
-│   ├── doctor/             # checks, score
-│   ├── detectors/          # PM, stack, scripts, folders
-│   ├── generators/         # Markdown templates + generated marker
+│   ├── cli.ts              # CLI entry point
+│   ├── commands/           # init, update, doctor, runbook, prompt, config, index, query
+│   ├── config/             # config reader and defaults
+│   ├── detectors/          # package manager, stack, scripts, folders, environment names
+│   ├── doctor/             # readiness checks and score formatting
+│   ├── fs/                 # project reading, validation, safe writes
+│   ├── generators/         # generated Markdown/YAML templates and markers
 │   ├── indexer/            # context tree cache
-│   └── fs/                 # read/write/validate
+│   ├── prompt/             # prompt compiler pipeline
+│   └── query/              # context section selection
 ├── tests/
-└── doc/guide/              # Đặc tả hệ thống (tài liệu này)
+├── doc/guide/              # source documentation
+├── docs-site/              # static docs site assets
+└── scripts/                # docs build/preview scripts
 ```
 
-## 8. Thứ tự đọc tài liệu
+---
 
-1. [OVERVIEW.md](./OVERVIEW.md) ← bạn đang ở đây
-2. [REQUIREMENTS.md](./REQUIREMENTS.md) — yêu cầu + acceptance
-3. [CLI_SPEC.md](./CLI_SPEC.md) — giao diện dòng lệnh
-4. [DATA_MODEL.md](./DATA_MODEL.md) — types & luồng dữ liệu
-5. [ARCHITECTURE.md](./ARCHITECTURE.md) — module & dependency
-6. [DETECTION_RULES.md](./DETECTION_RULES.md) — rule detect
-7. [GENERATED_FILES_SPEC.md](./GENERATED_FILES_SPEC.md) — template output
-8. [SRC_WORKFLOW.md](./SRC_WORKFLOW.md) — map code chi tiết
+## 8. Suggested Reading Order
 
-Tham khảo thêm: [NON_FUNCTIONAL.md](./NON_FUNCTIONAL.md), [TEST_STRATEGY.md](./TEST_STRATEGY.md), [GLOSSARY.md](./GLOSSARY.md), [ROADMAP.md](./ROADMAP.md), [adr/](./adr/).
+1. [RESEARCH_NOTES.md](./RESEARCH_NOTES.md)
+2. [ALGORITHMS.md](./ALGORITHMS.md)
+3. [REQUIREMENTS.md](./REQUIREMENTS.md)
+4. [CLI_SPEC.md](./CLI_SPEC.md)
+5. [DATA_MODEL.md](./DATA_MODEL.md)
+6. [ARCHITECTURE.md](./ARCHITECTURE.md)
+7. [DETECTION_RULES.md](./DETECTION_RULES.md)
+8. [GENERATED_FILES_SPEC.md](./GENERATED_FILES_SPEC.md)
+9. [SECURITY_MODEL.md](./SECURITY_MODEL.md)
+10. [SRC_WORKFLOW.md](./SRC_WORKFLOW.md)

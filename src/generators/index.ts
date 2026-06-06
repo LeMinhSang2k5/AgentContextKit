@@ -12,6 +12,8 @@ import { generateCursorRules } from "./cursor-rules.js";
 import { generateGithubActionsWorkflow } from "./github-actions-workflow.js";
 import { addGeneratedMarkers } from "./marker.js";
 import { generateProjectContextMd } from "./project-context-md.js";
+import { generateRunbookMd } from "./runbook-md.js";
+import type { EnvironmentScanResult } from "../detectors/environment.js";
 
 export function generateAllFiles(
   ctx: ProjectContext,
@@ -43,6 +45,15 @@ export function generateCiWorkflowFile(): GeneratedFileMap {
   });
 }
 
+export function generateRunbookFile(
+  ctx: ProjectContext,
+  env: EnvironmentScanResult,
+): GeneratedFileMap {
+  return addGeneratedMarkers({
+    "RUNBOOK.md": generateRunbookMd(ctx, env),
+  });
+}
+
 export {
   generateAgentsMd,
   generateClaudeMd,
@@ -51,6 +62,7 @@ export {
   generateCursorRules,
   generateGithubActionsWorkflow,
   generateProjectContextMd,
+  generateRunbookMd,
 };
 export {
   addGeneratedMarkers,

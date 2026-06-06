@@ -11,6 +11,8 @@ export type {
   DiffOptions,
   GeneratedDiff,
 } from "./commands/diff.js";
+export { runRunbook } from "./commands/runbook.js";
+export type { RunbookOptions } from "./commands/runbook.js";
 export { runIndex } from "./commands/index.js";
 export type { IndexOptions } from "./commands/index.js";
 export { runQuery } from "./commands/query.js";
@@ -84,6 +86,14 @@ export {
 } from "./detectors/labels.js";
 export { detectImportantFolders } from "./detectors/folders.js";
 export {
+  detectEnvironmentUsage,
+  extractEnvNamesFromSource,
+} from "./detectors/environment.js";
+export type {
+  EnvironmentScanResult,
+  EnvVariableInfo,
+} from "./detectors/environment.js";
+export {
   detectPackageManagerFromLockfile,
   parsePackageManagerField,
   resolvePackageManager,
@@ -108,6 +118,8 @@ export {
   generateCopilotInstructionsMd,
   generateCursorRules,
   generateGithubActionsWorkflow,
+  generateRunbookFile,
+  generateRunbookMd,
 } from "./generators/index.js";
 export {
   hasReadme,

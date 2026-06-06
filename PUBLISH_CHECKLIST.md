@@ -153,7 +153,13 @@ npm publish --access public
 ```
 
 - Xác nhận trên [https://www.npmjs.com/package/ready-for-agents](https://www.npmjs.com/package/ready-for-agents)
-- `npx --package ready-for-agents@X.Y.Z rfa doctor --json` từ máy sạch (hoặc CI)
+- Từ máy sạch hoặc CI: `npx --package ready-for-agents@X.Y.Z -- rfa doctor --json`
+- Nếu đang đứng trong chính repo `ready-for-agents`, test bản npm published bằng thư mục sạch:
+
+```bash
+npm exec --prefix /private/tmp --yes --package ready-for-agents@X.Y.Z -- rfa --version
+npm exec --prefix /private/tmp --yes --package ready-for-agents@X.Y.Z -- rfa doctor --json --cwd /path/to/project
+```
 
 ---
 
@@ -190,8 +196,8 @@ Hoặc: **Actions** → **Publish to npm** → **Run workflow** (`workflow_dispa
 ## CI gate gợi ý (consumer repos)
 
 ```yaml
-- run: npx --package ready-for-agents rfa doctor --json --cwd .
+- run: npx --package ready-for-agents -- rfa doctor --json --cwd .
 - run: test "$(jq -e '.ok == true' < doctor.json)" # nếu redirect stdout
 ```
 
-Hoặc chỉ: `npx --package ready-for-agents rfa doctor --json --cwd .` và dựa **exit code**.
+Hoặc chỉ: `npx --package ready-for-agents -- rfa doctor --json --cwd .` và dựa **exit code**.
