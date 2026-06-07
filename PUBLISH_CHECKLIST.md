@@ -6,9 +6,9 @@ Checklist trước khi `npm publish` (hoặc `pnpm publish`). Chạy từ root r
 
 ## 1. Version & changelog
 
-- Bump `version` in `package.json` (semver: patch / minor / major) — hiện **0.2.2**
+- Bump `version` in `package.json` (semver: patch / minor / major) — hiện **0.3.0**
 - Cập nhật [CHANGELOG.md](./CHANGELOG.md): chuyển mục `[Unreleased]` → `[x.y.z] - YYYY-MM-DD`
-- Tag git: `git tag vX.Y.Z` (sau khi merge release)
+- Tag git phải khớp version package: `git tag v0.3.0`
 
 ---
 
@@ -19,11 +19,13 @@ pnpm install
 pnpm typecheck
 pnpm test
 pnpm run build
+pnpm docs:build
 ```
 
 - `pnpm typecheck` — pass
-- `pnpm test` — pass (hiện 279 tests)
+- `pnpm test` — pass (hiện 292 tests)
 - `pnpm run build` — `dist/` mới nhất (CLI đọc từ đây)
+- `pnpm docs:build` — GitHub Pages docs build được
 
 ---
 
@@ -48,6 +50,10 @@ node dist/cli.js index --help
 node dist/cli.js x --help
 node dist/cli.js query --help
 node dist/cli.js q --help
+node dist/cli.js runbook --help
+node dist/cli.js r --help
+node dist/cli.js docker --help
+node dist/cli.js revive --help
 node dist/cli.js doctor --json --cwd .
 node dist/cli.js doctor --fix --dry-run --cwd .
 node dist/cli.js update --check --json --cwd .
@@ -61,6 +67,10 @@ node dist/cli.js query "how should I verify this change?" --cwd .
 node dist/cli.js query "show stack and dependencies" --json --cwd .
 node dist/cli.js prompt "how should I verify this change?" --context --compact --cwd .
 node dist/cli.js p "how should I verify this change?" --cwd .
+node dist/cli.js runbook --dry-run --cwd .
+node dist/cli.js r --dry-run --cwd .
+node dist/cli.js docker --dry-run --cwd .
+node dist/cli.js revive --dry-run --cwd .
 ```
 
 - `doctor` text mode in ra Checks + Score
@@ -74,7 +84,10 @@ node dist/cli.js p "how should I verify this change?" --cwd .
 - `index --dry-run` in metadata; `index --json` parse được
 - `query` text mode in section refs; `query --json` parse được
 - `prompt --context --compact` và `p` in `Relevant Context` khi context files tồn tại
-- Help output dùng canonical name `rfa`; alias `i/d/u/p/c i/x/q` hoạt động
+- `runbook --dry-run` preview `RUNBOOK.md` và không đọc giá trị secret trong `.env*`
+- `docker --dry-run` preview `docker-compose.yml` nếu detect được MongoDB/PostgreSQL/MySQL/Redis
+- `revive --dry-run` preview runbook, compose nếu phù hợp, context tree và next steps
+- Help output dùng canonical name `rfa`; alias `i/d/u/p/c i/x/q/r` hoạt động
 - Exit `0` khi project pass/warn-only; exit `1` khi cwd sai hoặc thiếu `package.json`
 
 ```bash
@@ -94,6 +107,7 @@ Tarball phải gồm:
 
 - `dist/` (compiled JS + `.d.ts`)
 - `doc/guide/` (specs; README links hoạt động trên npm)
+- `docs/assets/` (README demo GIFs)
 - `CHANGELOG.md`, `PUBLISH_CHECKLIST.md`
 - `README.md`, `README.vi.md`, `LICENSE`, `package.json` (npm luôn đính kèm)
 
@@ -144,21 +158,40 @@ Trước lần publish đầu, cân nhắc thêm vào `package.json`:
 
 ## 7. Publish
 
-```bash
-# dry-run registry (optional)
-npm publish --dry-run
+Khuyến nghị publish bằng GitHub Actions Trusted Publisher:
 
-# thật
+```bash
+git add .
+git commit -m "release: prepare v0.3.0"
+git tag v0.3.0
+git push
+git push origin v0.3.0
+```
+
+Workflow sẽ chạy:
+
+```text
+pnpm install --frozen-lockfile
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm publish --access public --no-git-checks --provenance
+```
+
+Publish thủ công chỉ dùng khi bạn thật sự muốn publish từ máy local:
+
+```bash
+npm publish --dry-run
 npm publish --access public
 ```
 
 - Xác nhận trên [https://www.npmjs.com/package/ready-for-agents](https://www.npmjs.com/package/ready-for-agents)
-- Từ máy sạch hoặc CI: `npx --package ready-for-agents@X.Y.Z -- rfa doctor --json`
+- Từ máy sạch hoặc CI: `npx --package ready-for-agents@0.3.0 -- rfa doctor --json`
 - Nếu đang đứng trong chính repo `ready-for-agents`, test bản npm published bằng thư mục sạch:
 
 ```bash
-npm exec --prefix /private/tmp --yes --package ready-for-agents@X.Y.Z -- rfa --version
-npm exec --prefix /private/tmp --yes --package ready-for-agents@X.Y.Z -- rfa doctor --json --cwd /path/to/project
+npm exec --prefix /private/tmp --yes --package ready-for-agents@0.3.0 -- rfa --version
+npm exec --prefix /private/tmp --yes --package ready-for-agents@0.3.0 -- rfa doctor --json --cwd /path/to/project
 ```
 
 ---
@@ -177,7 +210,7 @@ Workflow: `[.github/workflows/publish.yml](./.github/workflows/publish.yml)`
 - Workflow filename: `publish.yml`
 - Allowed actions: **Publish**
 
-3. Release: bump `package.json` + `CHANGELOG.md` → tag `vX.Y.Z` → `git push origin vX.Y.Z`
+3. Release: bump `package.json` + `CHANGELOG.md` → tag `v0.3.0` → `git push origin v0.3.0`
 
 Action chạy: `pnpm typecheck` → `test` → `build` → `pnpm publish --provenance` (không cần `NPM_TOKEN`).
 

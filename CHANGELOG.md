@@ -7,6 +7,10 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [0.3.0] - 2026-06-07
+
 ### Added
 
 - **`runbook`** — generate privacy-safe `RUNBOOK.md` for reviving old projects; supports `--dry-run`, `--force`, `--cwd`, and alias `r`.
@@ -113,7 +117,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - No network or AI API calls in core CLI paths
 
-[Unreleased]: https://github.com/LeMinhSang2k5/ready-for-agents/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/LeMinhSang2k5/ready-for-agents/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/LeMinhSang2k5/ready-for-agents/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/LeMinhSang2k5/ready-for-agents/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/LeMinhSang2k5/ready-for-agents/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/LeMinhSang2k5/ready-for-agents/compare/v0.1.0...v0.2.0
