@@ -11,8 +11,12 @@ export type {
   DiffOptions,
   GeneratedDiff,
 } from "./commands/diff.js";
+export { runDocker } from "./commands/docker.js";
+export type { DockerOptions } from "./commands/docker.js";
 export { runRunbook } from "./commands/runbook.js";
 export type { RunbookOptions } from "./commands/runbook.js";
+export { runRevive } from "./commands/revive.js";
+export type { ReviveOptions } from "./commands/revive.js";
 export { runIndex } from "./commands/index.js";
 export type { IndexOptions } from "./commands/index.js";
 export { runQuery } from "./commands/query.js";
@@ -93,6 +97,12 @@ export type {
   EnvironmentScanResult,
   EnvVariableInfo,
 } from "./detectors/environment.js";
+export { detectLocalServices } from "./detectors/services.js";
+export type {
+  LocalService,
+  LocalServiceId,
+  LocalServicePlan,
+} from "./detectors/services.js";
 export {
   detectPackageManagerFromLockfile,
   parsePackageManagerField,
@@ -117,6 +127,8 @@ export {
   generateClaudeMd,
   generateCopilotInstructionsMd,
   generateCursorRules,
+  generateDockerComposeFile,
+  generateDockerComposeYml,
   generateGithubActionsWorkflow,
   generateRunbookFile,
   generateRunbookMd,

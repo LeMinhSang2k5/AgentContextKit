@@ -10,11 +10,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - **`runbook`** — generate privacy-safe `RUNBOOK.md` for reviving old projects; supports `--dry-run`, `--force`, `--cwd`, and alias `r`.
+- **`docker`** — generate local-development `docker-compose.yml` for supported MongoDB, PostgreSQL, MySQL, and Redis services.
+- **`revive`** — prepare `RUNBOOK.md`, local service compose, context tree, and next-step commands in one workflow.
 - Environment name detection for `runbook` from safe templates and source references.
+- Local service detection from specific dependencies and Prisma datasource providers.
 
 ### Security
 
-- `runbook` does not read or print values from `.env`, `.env.local`, `.env.production`, or other non-template `.env*` files.
+- `runbook`, `docker`, and `revive` do not read or print values from `.env`, `.env.local`, `.env.production`, or other non-template `.env*` files.
+- `docker` and `revive` prepare files only; they do not run Docker, installs, migrations, or package scripts.
 
 ## [0.2.2] - 2026-06-06
 

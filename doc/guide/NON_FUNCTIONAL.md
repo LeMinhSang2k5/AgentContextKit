@@ -11,6 +11,7 @@
 | NFR-1-3 | Detection does not spawn child processes | Uses Node `fs`, path utilities, and JSON parsing |
 | NFR-1-4 | `index` is deterministic and lightweight | Reads only known generated output files |
 | NFR-1-5 | `runbook` source scanning is bounded | Limits source file count and file size; ignores generated/heavy directories |
+| NFR-1-6 | `docker` service detection is bounded | Reads dependencies and optional Prisma schema only |
 
 Large files can still be read if they are part of the explicit metadata path, such as a very large `package.json`.
 
@@ -36,8 +37,9 @@ Large files can still be read if they are part of the explicit metadata path, su
 | NFR-3-3 | `--dry-run` never writes to disk |
 | NFR-3-4 | Existing user-authored files are preserved unless `--force` is explicit |
 | NFR-3-5 | Do not read secret values from `.env*` non-template files |
-| NFR-3-6 | `runbook` may emit environment variable names, never environment values |
+| NFR-3-6 | `runbook` and `revive` may emit environment variable names, never environment values |
 | NFR-3-7 | Core CLI paths do not call AI APIs or network services |
+| NFR-3-8 | `docker` and `revive` do not run Docker, installs, migrations, or package scripts |
 
 ---
 

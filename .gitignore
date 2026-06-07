@@ -7,6 +7,10 @@ dist/
 build/
 site/
 *.tsbuildinfo
+*.d.ts.map
+
+# Local generated context cache
+.ready-for-agents/
 
 # Test & coverage
 coverage/
@@ -40,6 +44,7 @@ Desktop.ini
 # Editors & IDEs
 .idea/
 .vscode/
+*.code-workspace
 *.swp
 *.swo
 *~
@@ -47,8 +52,10 @@ Desktop.ini
 .classpath
 .settings/
 
-# Cursor / local agent state (keep repo rules in doc/ or .cursor/rules if added later)
-.cursor/
+# Cursor / local agent state (allow committed project rules)
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 
 # Package manager artifacts
 *.tgz
@@ -68,6 +75,17 @@ bun.lockb
 # Misc cache
 .cache/
 .turbo/
+.vite/
+.parcel-cache/
+.next/
+.nuxt/
+.svelte-kit/
+.vercel/
+.netlify/
+.wrangler/
+.pytest_cache/
+__pycache__/
+*.py[cod]
 .eslintcache
 .prettiercache
 *.pid
@@ -76,4 +94,3 @@ bun.lockb
 
 # Draft docs (not published specs — see doc/guide/)
 doc/ideas/
-PUBLISHED_CHECKLIST.md

@@ -32,6 +32,8 @@ This roadmap summarizes shipped work and planned directions. Detailed functional
 | `index` | Context tree cache |
 | `query` | Select relevant generated context sections |
 | `runbook` | Privacy-safe project revival guide |
+| `docker` | Local development service compose generator |
+| `revive` | Composite runbook, local services, and context index workflow |
 | GitHub Pages docs site | Static research-style documentation generated from `doc/guide` |
 
 ---
@@ -51,10 +53,9 @@ This roadmap summarizes shipped work and planned directions. Detailed functional
 
 | Priority | Item | Why |
 | --- | --- | --- |
-| P1 | `rfa docker --dry-run` | Generate Dockerfile / compose guidance from detected stack |
-| P1 | Docker privacy model | Ensure env placeholders never leak real secrets |
 | P2 | `rfa seed --dry-run` | Generate sample data templates for local development |
-| P3 | `rfa revive --dry-run` | Compose runbook, docker, seed, doctor, and index workflows |
+| P3 | App container generation | Add Dockerfile guidance only when entry points and ports are clear |
+| P3 | Migration/seed orchestration | Compose seed, migrations, doctor, and index only with explicit opt-in |
 
 ---
 

@@ -9,6 +9,7 @@
   },
   "files": [
     "dist",
+    "docs/assets",
     "doc/guide",
     "CHANGELOG.md",
     "PUBLISH_CHECKLIST.md"

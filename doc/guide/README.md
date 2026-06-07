@@ -35,10 +35,12 @@ The documentation source is intentionally written in English so the GitHub Pages
 | `diff` | Compare generated context with current project state | [CLI_SPEC](./CLI_SPEC.md#4-diff), [Requirements](./REQUIREMENTS.md#fr-diff) |
 | `ci` | Generate GitHub Actions workflow | [CLI_SPEC](./CLI_SPEC.md#5-ci), [Requirements](./REQUIREMENTS.md#fr-ci) |
 | `runbook` | Generate a privacy-safe project revival guide | [CLI_SPEC](./CLI_SPEC.md#6-runbook), [Security Model](./SECURITY_MODEL.md) |
+| `docker` | Generate local development services | [CLI_SPEC](./CLI_SPEC.md#12-docker), [Requirements](./REQUIREMENTS.md#fr-docker) |
+| `revive` | Prepare runbook, local services, and context index | [CLI_SPEC](./CLI_SPEC.md#13-revive), [Requirements](./REQUIREMENTS.md#fr-revive) |
 | `doctor` | Check readiness; optionally fix generated context | [CLI_SPEC](./CLI_SPEC.md#7-doctor), [Requirements](./REQUIREMENTS.md#fr-doctor) |
 | `prompt` / `p` | Compile rough instructions into agent-ready prompts | [CLI_SPEC](./CLI_SPEC.md#8-prompt--p), [PROMPT_SPEC](./PROMPT_SPEC.md) |
-| `config init` | Create `.ready-for-agents.json` | [CLI_SPEC](./CLI_SPEC.md#9-config-init), [Data Model](./DATA_MODEL.md#8-configuration-model) |
-| `index` | Build context tree cache | [CLI_SPEC](./CLI_SPEC.md#10-index), [Data Model](./DATA_MODEL.md#9-context-tree-model) |
+| `config init` | Create `.ready-for-agents.json` | [CLI_SPEC](./CLI_SPEC.md#9-config-init), [Data Model](./DATA_MODEL.md#9-configuration-model) |
+| `index` | Build context tree cache | [CLI_SPEC](./CLI_SPEC.md#10-index), [Data Model](./DATA_MODEL.md#10-context-tree-model) |
 | `query` | Select relevant generated context sections | [CLI_SPEC](./CLI_SPEC.md#11-query), [Algorithms](./ALGORITHMS.md#5-query-selection) |
 
 ---
@@ -128,6 +130,6 @@ The documentation source is intentionally written in English so the GitHub Pages
 
 | Code version | Documentation coverage |
 | --- | --- |
-| v0.2.x | `init`, `update`, `diff`, `ci`, `runbook`, `doctor`, `prompt`, `config`, `index`, `query`, generated files, algorithms, and security model |
+| v0.2.x | `init`, `update`, `diff`, `ci`, `runbook`, `docker`, `revive`, `doctor`, `prompt`, `config`, `index`, `query`, generated files, algorithms, and security model |
 
 When behavior changes, update the relevant requirements, CLI spec, data model, detection rules, generated file spec, and tests in the same change set.

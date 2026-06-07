@@ -15,6 +15,7 @@ This document describes the current security model and the boundaries future fea
 | User repository | Read only the files required for static detection and generation |
 | Existing user files | Preserve by default; overwrite only with `--force` |
 | Environment files | Do not read secret values from `.env*` non-template files |
+| Local automation | Generate revival files only; do not run Docker, installs, migrations, or package scripts |
 | Network | Core CLI paths do not call network or AI APIs |
 | Generated output | Add markers so refresh commands can distinguish generated files from user files |
 
@@ -49,7 +50,7 @@ These files are treated as sensitive:
 - `.env.test`
 - any `.env*` file that is not clearly a template
 
-For these files, `runbook` records only that the file exists. It does not read or print values.
+For these files, `runbook`, `docker`, and `revive` record only that the file exists when relevant. They do not read or print values.
 
 ### Safe Templates
 
@@ -80,13 +81,14 @@ context files must not contain secret values
 | User edited `AGENTS.md` manually | Marker hash no longer matches; `update` skips it |
 | AI agent asks for full context | `query` can select sections before full reads |
 | CI runs freshness check | `diff --json` reports stale files without writing |
-| Future Docker/seed feature needs env | Use placeholders and generated TODOs, never real env values |
+| Docker/revive needs local service guidance | Generate local placeholders and notes, never real env values |
+| Future seed feature needs sample data | Generate placeholders or templates, never production records |
 
 ---
 
-## 6. Future Security Requirements
+## 6. Revival Automation Requirements
 
-Planned features such as Docker and seed generation must follow these rules:
+Docker, revive, and planned seed generation must follow these rules:
 
 1. Do not read secret values by default.
 2. Do not infer credentials.

@@ -2,7 +2,7 @@
 
 Test runner: **Vitest** via `pnpm test`.
 
-Current suite: **283 tests** across **16 files**.
+Current suite: **292 tests** across **17 files**.
 
 ---
 
@@ -12,7 +12,7 @@ Current suite: **283 tests** across **16 files**.
 | --- | --- |
 | Lock functional behavior | Map tests to [REQUIREMENTS.md](./REQUIREMENTS.md) |
 | Protect detection rules | detector and package manager tests |
-| Protect safe writes | init, update, doctor fix, runbook tests |
+| Protect safe writes | init, update, doctor fix, runbook, docker, and revive tests |
 | Validate machine-readable output | doctor/update/diff/query/prompt JSON tests |
 | Protect prompt quality | example suite and quality assertions |
 | Keep CLI aliases stable | CLI entrypoint tests |
@@ -45,6 +45,7 @@ Unit tests
 | `update.test.ts` | markers, untracked files, check mode, JSON |
 | `ci-diff.test.ts` | CI workflow generation and diff output |
 | `runbook.test.ts` | runbook safe writes and env privacy |
+| `revive.test.ts` | local service detection, docker compose, and composite revive behavior |
 | `cli.test.ts` | canonical CLI name and aliases |
 | `config-index.test.ts` | config init, legacy config, index, prompt config |
 | `query.test.ts` | live/cache context section selection |
@@ -107,6 +108,20 @@ Fixtures should be small, explicit, and cleaned up in `afterEach`.
 - `.env` values are never printed;
 - safe templates contribute variable names only;
 - source env references are detected.
+
+### Docker
+
+- supported services are detected from specific dependencies and Prisma providers;
+- dry-run previews `docker-compose.yml`;
+- existing `docker-compose.yml` is preserved unless `--force`;
+- `.env` values are never printed.
+
+### Revive
+
+- dry-run previews runbook, compose, index output, and next steps;
+- write mode creates `RUNBOOK.md`, compose when applicable, and context tree;
+- `--no-docker` and `--no-index` skip those outputs;
+- context tree classifies `RUNBOOK.md` as `runbook` and `docker-compose.yml` as `docker`.
 
 ### Prompt
 

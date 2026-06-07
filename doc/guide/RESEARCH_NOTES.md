@@ -34,7 +34,7 @@ A deterministic repository context layer can improve agent performance if it sat
 3. It is explicit about uncertainty.
 4. It is machine-readable enough for selective retrieval.
 
-The project tests this hypothesis through commands such as `init`, `doctor`, `prompt`, `index`, `query`, `diff`, and `runbook`.
+The project tests this hypothesis through commands such as `init`, `doctor`, `prompt`, `index`, `query`, `diff`, `runbook`, `docker`, and `revive`.
 
 ---
 
@@ -44,8 +44,8 @@ The system has three conceptual layers.
 
 | Layer | Role | Example |
 | --- | --- | --- |
-| Detection | Convert project artifacts into facts | package manager, stack, scripts |
-| Generation | Convert facts into agent-readable files | `AGENTS.md`, `COMMANDS.md`, `RUNBOOK.md` |
+| Detection | Convert project artifacts into facts | package manager, stack, scripts, local services |
+| Generation | Convert facts into agent-readable files | `AGENTS.md`, `COMMANDS.md`, `RUNBOOK.md`, compose files |
 | Retrieval | Select only the relevant generated sections | context tree, `query`, prompt context |
 
 The important design choice is that generation and retrieval are separated. Generated Markdown is readable by humans, while `context-tree.json` gives agents a compact map before they open full files.
@@ -68,7 +68,7 @@ The tool uses conservative first-match rules. It prefers "Not detected" over spe
 
 ### RQ4: Can project revival be automated without leaking secrets?
 
-`runbook` generates operational guidance while treating `.env*` values as out of scope. It detects names, not values.
+`runbook`, `docker`, and `revive` generate operational guidance while treating `.env*` values as out of scope. They detect names and local service evidence, not secret values.
 
 ---
 
@@ -82,7 +82,7 @@ The project uses behavior-oriented tests instead of snapshot-heavy tests.
 | Safety | existing files are skipped unless `--force` |
 | Freshness | generated markers classify files as up-to-date/outdated/untracked |
 | Prompt quality | bilingual example suite and quality assertions |
-| Privacy | `.env` values are not read or emitted by `runbook` |
+| Privacy | `.env` values are not read or emitted by `runbook`, `docker`, or `revive` |
 
 This is not a benchmark of AI agent productivity yet. It is a correctness and safety baseline for the context layer.
 
@@ -93,5 +93,5 @@ This is not a benchmark of AI agent productivity yet. It is a correctness and sa
 1. Measure how often `query` reduces full-file reads in real agent sessions.
 2. Compare static prompt normalization against AI-based rewriting with human evaluation.
 3. Add language-specific detectors while preserving conservative uncertainty.
-4. Extend `runbook` into Docker and seed generation with an explicit threat model.
+4. Extend revival automation into seed generation with an explicit threat model.
 5. Explore context graph ranking beyond keyword overlap, such as section centrality and command relevance.

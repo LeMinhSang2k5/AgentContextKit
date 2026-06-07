@@ -83,6 +83,32 @@ Status values:
 
 ---
 
+## FR-docker
+
+| ID | Requirement | Acceptance | Status |
+| --- | --- | --- | --- |
+| FR-docker-1 | Generate local compose file | creates `docker-compose.yml` for supported services | Done |
+| FR-docker-2 | Support dry-run | previews compose without writing | Done |
+| FR-docker-3 | Safe write | preserves existing `docker-compose.yml` unless `--force` | Done |
+| FR-docker-4 | Detect supported services conservatively | MongoDB, PostgreSQL, MySQL, and Redis only when evidence is specific | Done |
+| FR-docker-5 | Protect env values | does not read or print values from `.env*` non-template files | Done |
+| FR-docker-6 | Avoid side effects | does not run Docker or install dependencies | Done |
+
+---
+
+## FR-revive
+
+| ID | Requirement | Acceptance | Status |
+| --- | --- | --- | --- |
+| FR-revive-1 | Compose revival workflow | prepares `RUNBOOK.md`, local compose when detected, and context tree | Done |
+| FR-revive-2 | Support dry-run | previews files, index output, and next steps without writing | Done |
+| FR-revive-3 | Safe write | preserves generated files unless `--force` | Done |
+| FR-revive-4 | Support opt-outs | `--no-docker` and `--no-index` disable those outputs | Done |
+| FR-revive-5 | Print next steps | lists Docker, install, dev, and verification commands when detected | Done |
+| FR-revive-6 | Avoid side effects | does not run Docker, install dependencies, execute scripts, or read secret values | Done |
+
+---
+
 ## FR-doctor
 
 | ID | Requirement | Acceptance | Status |
@@ -180,6 +206,7 @@ Required fields:
 | FR-detect-6 | Related dev scripts | parses `dev:*` and script references | Done |
 | FR-detect-7 | Important folders | checks known root folder names | Done |
 | FR-detect-8 | Env names for runbook | detects names from safe templates and static source references | Done |
+| FR-detect-9 | Local services for docker/revive | maps specific dependencies and Prisma datasource providers to supported services | Done |
 
 ---
 
@@ -187,9 +214,7 @@ Required fields:
 
 | ID | Requirement | Status |
 | --- | --- | --- |
-| FR-docker-1 | Generate Dockerfile and docker-compose guidance | Planned |
 | FR-seed-1 | Generate sample data templates | Planned |
-| FR-revive-1 | Compose runbook/docker/seed/doctor/index workflows | Planned |
 | FR-lang-1 | Detect Python/FastAPI/Django projects | Planned |
 | FR-ai-1 | Optional AI summaries with explicit opt-in | Planned |
 
@@ -203,6 +228,7 @@ Required fields:
 | Update | `update.test.ts` |
 | Diff and CI | `ci-diff.test.ts` |
 | Runbook | `runbook.test.ts` |
+| Docker and revive | `revive.test.ts` |
 | Doctor | `doctor.test.ts` |
 | Config, index, query | `config-index.test.ts`, `query.test.ts` |
 | Detection | `detectors.test.ts`, `package-manager.test.ts` |

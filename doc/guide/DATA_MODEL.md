@@ -76,6 +76,7 @@ const OUTPUT_FILES = [
   "PROJECT_CONTEXT.md",
   "COMMANDS.md",
   "RUNBOOK.md",
+  "docker-compose.yml",
   ".cursor/rules/ready-for-agents.mdc",
   "CLAUDE.md",
   ".github/copilot-instructions.md",
@@ -149,6 +150,32 @@ The scan result stores variable names and sources, never values.
 
 ## 8. Configuration Model
 
+## 8. Local Service Plan Model
+
+```ts
+type LocalServiceId = "mongodb" | "postgresql" | "mysql" | "redis";
+
+type LocalService = {
+  id: LocalServiceId;
+  label: string;
+  image: string;
+  port: number;
+  volumeSuffix: string;
+  envHints: string[];
+};
+
+type LocalServicePlan = {
+  services: LocalService[];
+  notes: string[];
+};
+```
+
+`detectLocalServices(ctx)` is consumed by `docker` and `revive`. It does not read `.env` values.
+
+---
+
+## 9. Configuration Model
+
 Primary config file: `.ready-for-agents.json`.  
 Legacy config fallback: `.agent-context-kit.json`.
 
@@ -187,7 +214,7 @@ CLI flags override config defaults.
 
 ---
 
-## 9. Context Tree Model
+## 10. Context Tree Model
 
 ```ts
 type ContextTree = {
@@ -209,7 +236,7 @@ type ContextTree = {
 
 type ContextTreeFile = {
   path: OutputFile;
-  kind: "core" | "runbook" | "cursor" | "claude" | "copilot" | "ci";
+  kind: "core" | "runbook" | "docker" | "cursor" | "claude" | "copilot" | "ci";
   exists: boolean;
   hash?: string;
   bytes?: number;
@@ -222,7 +249,7 @@ The context tree is a cache. It has no generated marker because it is JSON and c
 
 ---
 
-## 10. Prompt Model
+## 11. Prompt Model
 
 ```ts
 type PromptIntent =

@@ -155,7 +155,34 @@ Implementation: `src/detectors/environment.ts`.
 
 ---
 
-## 7. Updating Detection Rules
+## 7. Local Service Detection For `docker` / `revive`
+
+Implementation: `src/detectors/services.ts`.
+
+The local service detector is intentionally stricter than stack detection. It generates Docker Compose services only when the dependency or Prisma datasource provider is specific enough.
+
+| Evidence | Generated Service |
+| --- | --- |
+| `mongoose`, `mongodb` | MongoDB |
+| `pg` | PostgreSQL |
+| `mysql2` | MySQL |
+| `redis`, `ioredis` | Redis |
+| Prisma `provider = "mongodb"` | MongoDB |
+| Prisma `provider = "postgresql"` | PostgreSQL |
+| Prisma `provider = "mysql"` | MySQL |
+| Prisma `provider = "sqlite"` | No external service |
+| `typeorm` without a specific driver | No service; emit a note |
+
+Safety rules:
+
+- Do not read `.env` values.
+- Do not infer a database from vague framework dependencies alone.
+- Do not generate a service for unsupported providers.
+- Prefer no compose file over a confident-looking wrong compose file.
+
+---
+
+## 8. Updating Detection Rules
 
 When adding or changing a rule:
 

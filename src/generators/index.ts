@@ -13,6 +13,8 @@ import { generateGithubActionsWorkflow } from "./github-actions-workflow.js";
 import { addGeneratedMarkers } from "./marker.js";
 import { generateProjectContextMd } from "./project-context-md.js";
 import { generateRunbookMd } from "./runbook-md.js";
+import { generateDockerComposeYml } from "./docker-compose-yml.js";
+import type { LocalServicePlan } from "../detectors/services.js";
 import type { EnvironmentScanResult } from "../detectors/environment.js";
 
 export function generateAllFiles(
@@ -54,12 +56,24 @@ export function generateRunbookFile(
   });
 }
 
+export function generateDockerComposeFile(
+  ctx: ProjectContext,
+  plan: LocalServicePlan,
+): GeneratedFileMap {
+  if (plan.services.length === 0) return {};
+
+  return addGeneratedMarkers({
+    "docker-compose.yml": generateDockerComposeYml(ctx, plan),
+  });
+}
+
 export {
   generateAgentsMd,
   generateClaudeMd,
   generateCommandsMd,
   generateCopilotInstructionsMd,
   generateCursorRules,
+  generateDockerComposeYml,
   generateGithubActionsWorkflow,
   generateProjectContextMd,
   generateRunbookMd,

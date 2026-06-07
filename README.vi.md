@@ -73,6 +73,22 @@ npx --package ready-for-agents -- rfa runbook
 
 `runbook` chỉ phát hiện tên biến môi trường từ source code và template an toàn như `.env.example`; lệnh này không đọc hoặc in giá trị trong `.env`, `.env.local`, hay các file `.env*` không phải template.
 
+Sinh local services cho database/cache phát hiện được:
+
+```bash
+npx --package ready-for-agents -- rfa docker --dry-run
+npx --package ready-for-agents -- rfa docker
+```
+
+Chuẩn bị bundle hồi sinh project trong một lệnh:
+
+```bash
+npx --package ready-for-agents -- rfa revive --dry-run
+npx --package ready-for-agents -- rfa revive
+```
+
+`revive` chuẩn bị `RUNBOOK.md`, `docker-compose.yml` nếu phù hợp, và context tree. Lệnh này không chạy Docker, không install dependencies, không chạy script, và không đọc secret.
+
 Kiểm tra project đã sẵn sàng cho AI agent chưa (không ghi file):
 
 ```bash
@@ -137,6 +153,8 @@ Dùng lệnh đầy đủ khi viết docs, hướng dẫn hoặc debug. Dùng al
 | `rfa diff`        | —         | so sánh context generated với project hiện tại | Không                                         |
 | `rfa ci`          | —         | tạo GitHub Actions workflow cho agent checks   | Có, trừ khi dùng `--dry-run`                  |
 | `rfa runbook`     | `rfa r`   | tạo hướng dẫn chạy lại project, không lộ secret | Có, trừ khi dùng `--dry-run`                  |
+| `rfa docker`      | —         | tạo local services cho database/cache          | Có, trừ khi dùng `--dry-run`                  |
+| `rfa revive`      | —         | chuẩn bị runbook, services và context index    | Có, trừ khi dùng `--dry-run`                  |
 | `rfa prompt`      | `rfa p`   | biến instruction thô thành prompt có cấu trúc  | Không                                         |
 | `rfa config init` | `rfa c i` | tạo `.ready-for-agents.json`                   | Có, trừ khi dùng `--dry-run`                  |
 | `rfa index`       | `rfa x`   | tạo `.ready-for-agents/context-tree.json`      | Có, trừ `--dry-run` hoặc `--json`             |
@@ -163,7 +181,7 @@ AI agent hoạt động tốt hơn khi đã biết sẵn:
 
 ## Bạn nhận được gì?
 
-Sau `init`, thư mục gốc project có thể có:
+Sau khi dùng các lệnh tương ứng, thư mục gốc project có thể có:
 
 
 | File                                     | Mục đích                                                      |
@@ -172,6 +190,7 @@ Sau `init`, thư mục gốc project có thể có:
 | `PROJECT_CONTEXT.md`                     | Stack, package manager, dependencies, ghi chú                 |
 | `COMMANDS.md`                            | Lệnh dev, build, test, lint và script liên quan               |
 | `RUNBOOK.md`                             | Hướng dẫn chạy lại project, không lộ secret (`runbook`)       |
+| `docker-compose.yml`                     | Local services được sinh bởi `docker` / `revive`              |
 | `.cursor/rules/ready-for-agents.mdc`     | Cursor project rule tùy chọn (`init --cursor` hoặc `--all`)   |
 | `CLAUDE.md`                              | Hướng dẫn Claude Code tùy chọn (`init --claude` hoặc `--all`) |
 | `.github/copilot-instructions.md`        | GitHub Copilot repository instructions tùy chọn               |
@@ -187,6 +206,7 @@ my-app/
 ├── PROJECT_CONTEXT.md     ← sinh tự động
 ├── COMMANDS.md            ← sinh tự động
 ├── RUNBOOK.md             ← sinh bởi rfa runbook
+├── docker-compose.yml     ← sinh bởi rfa docker/revive
 └── .ready-for-agents/
     └── context-tree.json  ← cache sinh tự động
 ```
@@ -310,6 +330,29 @@ rfa runbook --dry-run
 rfa runbook
 rfa r --cwd /Users/you/projects/my-app
 rfa runbook --force
+```
+
+### Sinh local services (`docker`)
+
+`docker` tạo `docker-compose.yml` cho service local detect được rõ ràng như MongoDB, PostgreSQL, MySQL và Redis.
+
+```bash
+rfa docker --dry-run
+rfa docker
+rfa docker --force
+rfa docker --cwd /Users/you/projects/my-app
+```
+
+### Hồi sinh project (`revive`)
+
+`revive` chuẩn bị `RUNBOOK.md`, `docker-compose.yml` nếu có service phù hợp, `.ready-for-agents/context-tree.json`, và next steps để chạy lại project.
+
+```bash
+rfa revive --dry-run
+rfa revive
+rfa revive --no-docker
+rfa revive --no-index
+rfa revive --force --cwd /Users/you/projects/my-app
 ```
 
 ### Kết hợp flag
@@ -741,6 +784,8 @@ pnpm dev doctor --fix --dry-run --cwd /path/to/your-project
 pnpm dev diff --cwd /path/to/your-project
 pnpm dev ci --dry-run --cwd /path/to/your-project
 pnpm dev runbook --dry-run --cwd /path/to/your-project
+pnpm dev docker --dry-run --cwd /path/to/your-project
+pnpm dev revive --dry-run --cwd /path/to/your-project
 pnpm dev config init --dry-run --cwd /path/to/your-project
 pnpm dev index --dry-run --cwd /path/to/your-project
 pnpm dev query "kiểm tra thay đổi này thế nào?" --cwd /path/to/your-project
@@ -781,6 +826,8 @@ GitHub Pages deploy qua `.github/workflows/docs.yml`. Trong repository settings,
 - `rfa diff` — so sánh context generated với project hiện tại
 - `rfa ci` — sinh GitHub Actions checks cho readiness và context freshness
 - `rfa runbook` — sinh hướng dẫn chạy lại project cũ, không lộ secret
+- `rfa docker` — sinh local services cho database/cache detect được
+- `rfa revive` — chuẩn bị runbook, local services và context index cùng lúc
 - `.ready-for-agents.json` — default cho optional files, prompt target, index output
 - `rfa index` — context tree cache gọn cho file agent generated
 - `rfa query` — chọn section context liên quan trước khi đọc full file

@@ -18,8 +18,9 @@ The architecture favors small modules, deterministic functions, and explicit com
 │ cli.ts · commander · picocolors                     │
 ├────────────────────────────────────────────────────┤
 │ Application                                         │
-│ commands/init · update · doctor · runbook · prompt  │
-│ commands/config · index · query · ci · diff         │
+│ commands/init · update · doctor · runbook · docker  │
+│ commands/revive · prompt · config · index · query   │
+│ commands/ci · diff                                  │
 ├────────────────────────────────────────────────────┤
 │ Domain                                              │
 │ detectors · generators · doctor · prompt · query    │
@@ -87,6 +88,29 @@ validateInitTarget
   → detectEnvironmentUsage
   → generateRunbookFile
   → writeGeneratedFiles or dry-run preview
+```
+
+### `docker`
+
+```text
+validateInitTarget
+  → readProject
+  → detectLocalServices
+  → generateDockerComposeFile
+  → writeGeneratedFiles or dry-run preview
+```
+
+### `revive`
+
+```text
+validateInitTarget
+  → readReadyForAgentsConfig
+  → readProject
+  → detectEnvironmentUsage
+  → detectLocalServices
+  → generateRunbookFile + generateDockerComposeFile
+  → writeGeneratedFiles or dry-run preview
+  → optional buildContextTree
 ```
 
 ### `doctor`

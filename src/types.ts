@@ -61,6 +61,7 @@ export const OUTPUT_FILES = [
   "PROJECT_CONTEXT.md",
   "COMMANDS.md",
   "RUNBOOK.md",
+  "docker-compose.yml",
   ".cursor/rules/ready-for-agents.mdc",
   "CLAUDE.md",
   ".github/copilot-instructions.md",

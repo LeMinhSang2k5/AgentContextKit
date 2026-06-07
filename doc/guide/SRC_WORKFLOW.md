@@ -67,6 +67,7 @@ Important functions:
 | `detectors/scripts.ts` | script aliases and related dev scripts |
 | `detectors/folders.ts` | root folder detection |
 | `detectors/environment.ts` | privacy-safe environment variable name detection |
+| `detectors/services.ts` | local database/cache service detection for Docker/revive |
 | `detectors/labels.ts` | terminal/display labels |
 
 Detection should remain conservative and static.
@@ -81,6 +82,7 @@ Detection should remain conservative and static.
 | `generators/project-context-md.ts` | `PROJECT_CONTEXT.md` |
 | `generators/commands-md.ts` | `COMMANDS.md` |
 | `generators/runbook-md.ts` | `RUNBOOK.md` |
+| `generators/docker-compose-yml.ts` | `docker-compose.yml` |
 | `generators/cursor-rules.ts` | Cursor rule |
 | `generators/claude-md.ts` | `CLAUDE.md` |
 | `generators/copilot-instructions-md.ts` | Copilot instructions |
@@ -114,6 +116,8 @@ Generators should return strings and avoid disk access.
 | `commands/diff.ts` | `rfa diff` |
 | `commands/ci.ts` | `rfa ci` |
 | `commands/runbook.ts` | `rfa runbook` |
+| `commands/docker.ts` | `rfa docker` |
+| `commands/revive.ts` | `rfa revive` |
 | `commands/doctor.ts` | `rfa doctor` |
 | `commands/prompt.ts` | `rfa prompt` and `rfa p` |
 | `commands/config.ts` | `rfa config init` |
@@ -179,6 +183,7 @@ Keep exports intentional. Anything exported becomes part of the package's progra
 | Update | `update.test.ts` |
 | Diff and CI | `ci-diff.test.ts` |
 | Runbook | `runbook.test.ts` |
+| Docker and revive | `revive.test.ts` |
 | Config, index, query | `config-index.test.ts`, `query.test.ts` |
 | Prompt | `prompt*.test.ts` |
 | CLI aliases | `cli.test.ts` |

@@ -28,6 +28,8 @@ CLI framework: [commander](https://github.com/tj/commander.js) v13.
 | `rfa diff` | none | Compare generated context with project state |
 | `rfa ci` | none | Generate GitHub Actions workflow |
 | `rfa runbook` | `rfa r` | Generate privacy-safe `RUNBOOK.md` |
+| `rfa docker` | none | Generate local development services |
+| `rfa revive` | none | Prepare runbook, local services, and context index |
 | `rfa prompt` | `rfa p` | Short prompt command with context + compact defaults |
 | `rfa config` | `rfa c` | Config command group |
 | `rfa config init` | `rfa c i` | Create `.ready-for-agents.json` |
@@ -310,4 +312,74 @@ type QueryJsonOutput = {
   summary: { matches: number; tokensEstimate: number };
   matches: QueryMatch[];
 };
+```
+
+---
+
+## 12. `docker`
+
+Generates `docker-compose.yml` for supported local development services detected from dependencies and safe static metadata.
+
+Supported services:
+
+- MongoDB from `mongoose`, `mongodb`, or Prisma `provider = "mongodb"`.
+- PostgreSQL from `pg` or Prisma `provider = "postgresql"`.
+- MySQL from `mysql2` or Prisma `provider = "mysql"`.
+- Redis from `redis` or `ioredis`.
+
+Privacy and safety:
+
+- Does not read `.env` values.
+- Does not use production credentials.
+- Does not run Docker.
+- Skips compose generation when the database is ambiguous.
+
+### Options
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--dry-run` | boolean | `false` | Preview `docker-compose.yml` without writing |
+| `--force` | boolean | `false` | Overwrite existing `docker-compose.yml` |
+| `--cwd <path>` | string | `process.cwd()` | Project directory |
+
+### Examples
+
+```bash
+rfa docker --dry-run
+rfa docker
+rfa docker --force
+```
+
+---
+
+## 13. `revive`
+
+Prepares a project revival bundle in one pass.
+
+Generated outputs:
+
+- `RUNBOOK.md`
+- `docker-compose.yml` when supported local services are detected
+- `.ready-for-agents/context-tree.json` unless `--no-index` is passed
+
+The command prints next steps for local service startup, dependency install, development command, and baseline verification. It prepares files only; it does not run Docker, install dependencies, execute package scripts, or read secret values.
+
+### Options
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--dry-run` | boolean | `false` | Preview revival files and next steps without writing |
+| `--force` | boolean | `false` | Overwrite generated revival files |
+| `--no-docker` | boolean | Docker enabled | Skip `docker-compose.yml` generation |
+| `--no-index` | boolean | Index enabled | Skip context tree generation |
+| `--cwd <path>` | string | `process.cwd()` | Project directory |
+
+### Examples
+
+```bash
+rfa revive --dry-run
+rfa revive
+rfa revive --no-docker
+rfa revive --no-index
+rfa revive --force --cwd /absolute/path/to/app
 ```

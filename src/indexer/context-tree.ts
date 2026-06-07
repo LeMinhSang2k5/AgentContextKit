@@ -23,7 +23,7 @@ export type ContextTreeSection = {
 
 export type ContextTreeFile = {
   path: OutputFile;
-  kind: "core" | "runbook" | "cursor" | "claude" | "copilot" | "ci";
+  kind: "core" | "runbook" | "docker" | "cursor" | "claude" | "copilot" | "ci";
   exists: boolean;
   hash?: string;
   bytes?: number;
@@ -230,6 +230,7 @@ function summarizeTree(files: ContextTreeFile[]): ContextTree["summary"] {
 
 function fileKind(path: OutputFile): ContextTreeFile["kind"] {
   if (path === "RUNBOOK.md") return "runbook";
+  if (path === "docker-compose.yml") return "docker";
   if (path === ".cursor/rules/ready-for-agents.mdc") return "cursor";
   if (path === "CLAUDE.md") return "claude";
   if (path === ".github/copilot-instructions.md") return "copilot";
@@ -289,7 +290,7 @@ function extractCommands(text: string, limit = 8): string[] {
   }
 
   const inlineCommand =
-    /`((?:npm|pnpm|yarn|bun|npx|rfa|ready-for-agents)\s+[^`]+)`/giu;
+    /`((?:npm|pnpm|yarn|bun|npx|docker|rfa|ready-for-agents)\s+[^`]+)`/giu;
   for (const match of text.matchAll(inlineCommand)) {
     commands.add(match[1]!.trim());
   }
@@ -298,7 +299,7 @@ function extractCommands(text: string, limit = 8): string[] {
 }
 
 function looksLikeCommand(line: string): boolean {
-  return /^(?:npm|pnpm|yarn|bun|npx|node|tsx|tsc|vitest|rfa|ready-for-agents)\b/u.test(
+  return /^(?:npm|pnpm|yarn|bun|npx|node|tsx|tsc|vitest|docker|rfa|ready-for-agents)\b/u.test(
     line,
   );
 }

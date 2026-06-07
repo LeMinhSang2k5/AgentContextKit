@@ -195,11 +195,29 @@ No environment values are stored in the detection result.
 
 ## 8. Complexity Summary
 
+## 8. Local Service Detection
+
+`rfa docker` and `rfa revive` use a deterministic evidence map:
+
+```text
+specific dependency or Prisma provider → supported local service
+ambiguous dependency → note, no compose service
+```
+
+This is intentionally stricter than stack detection. For example, `typeorm` alone does not identify PostgreSQL vs MySQL vs SQLite, so the Docker generator skips service generation and emits a note.
+
+The generated compose file uses local placeholders and fixed local development credentials. It does not interpolate values from `.env`, so running the generator cannot expose secrets.
+
+---
+
+## 9. Complexity Summary
+
 | Component | Main input | Approximate complexity |
 | --- | --- | --- |
 | Package manager detection | fixed lockfile list | `O(1)` |
 | Stack detection | dependency rules | `O(R)` for small rule tables |
 | Script detection | package scripts | `O(S)` |
+| Local service detection | dependencies + optional Prisma schema | `O(D)` plus one bounded schema read |
 | Marker validation | selected generated files | `O(F * fileSize)` |
 | Context tree | generated Markdown files | `O(total generated text)` |
 | Query | tree sections | `O(Q * N)` token overlap |

@@ -23,7 +23,7 @@ The core CLI does not call AI APIs, does not upload source code, and does not ex
 | Agents edit unsafe files | `AGENTS.md` lists safety rules and files to avoid |
 | Users repeat repository context every session | Context files live in the repository |
 | Agents read every context file every turn | `index` and `query` provide targeted section lookup |
-| Old projects are hard to restart | `runbook` generates a privacy-safe revival guide |
+| Old projects are hard to restart | `runbook`, `docker`, and `revive` prepare a privacy-safe local revival path |
 
 ---
 
@@ -38,6 +38,8 @@ The core CLI does not call AI APIs, does not upload source code, and does not ex
 - `diff`: compare generated context against current project state.
 - `ci`: generate a GitHub Actions workflow for readiness and freshness checks.
 - `runbook`: generate `RUNBOOK.md` without reading secret environment values.
+- `docker`: generate local development services for detected databases/caches.
+- `revive`: prepare `RUNBOOK.md`, local services, and context tree in one pass.
 - `doctor`: check project readiness; `--fix` can repair generated context files.
 - `prompt`: compile rough user instructions into structured agent-ready prompts without an AI API.
 - `config init`: generate `.ready-for-agents.json`.
@@ -64,6 +66,8 @@ The core CLI does not call AI APIs, does not upload source code, and does not ex
 | `diff` | No | Show stale, missing, or untracked generated files |
 | `ci` | Yes, unless `--dry-run` | Create GitHub Actions readiness/freshness workflow |
 | `runbook` | Yes, unless `--dry-run` | Create a project revival guide without leaking secrets |
+| `docker` | Yes, unless `--dry-run` | Create local development services when supported |
+| `revive` | Yes, unless `--dry-run` | Prepare runbook, local services, and context index together |
 | `doctor` | No, unless `--fix` | Check project readiness and optionally fix generated context |
 | `prompt` / `p` | No | Normalize rough instructions into agent-ready prompts |
 | `config init` | Yes, unless `--dry-run` | Create project-level CLI defaults |
@@ -91,7 +95,7 @@ The core CLI does not call AI APIs, does not upload source code, and does not ex
 3. **Deterministic output:** the same project state should produce the same generated context.
 4. **Conservative detection:** prefer "not detected" over a confident but wrong label.
 5. **Privacy-first env handling:** detect variable names, not secret values.
-6. **Small composable commands:** keep `init`, `doctor`, `runbook`, `query`, and `prompt` independently useful.
+6. **Small composable commands:** keep `init`, `doctor`, `runbook`, `docker`, `revive`, `query`, and `prompt` independently useful.
 7. **Human and machine readability:** generated Markdown should be readable by people; JSON outputs should support CI and automation.
 
 ---
@@ -102,9 +106,9 @@ The core CLI does not call AI APIs, does not upload source code, and does not ex
 ready-for-agents/
 ├── src/
 │   ├── cli.ts              # CLI entry point
-│   ├── commands/           # init, update, doctor, runbook, prompt, config, index, query
+│   ├── commands/           # init, update, doctor, runbook, docker, revive, prompt, config, index, query
 │   ├── config/             # config reader and defaults
-│   ├── detectors/          # package manager, stack, scripts, folders, environment names
+│   ├── detectors/          # package manager, stack, scripts, folders, environment names, local services
 │   ├── doctor/             # readiness checks and score formatting
 │   ├── fs/                 # project reading, validation, safe writes
 │   ├── generators/         # generated Markdown/YAML templates and markers
