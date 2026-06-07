@@ -168,14 +168,14 @@ git push
 git push origin v0.3.0
 ```
 
-Workflow sẽ chạy:
+Workflow sẽ chạy trên Node.js 24 để npm CLI hỗ trợ OIDC Trusted Publishing:
 
 ```text
 pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm test
 pnpm build
-pnpm publish --access public --no-git-checks --provenance
+npm publish --access public --no-git-checks
 ```
 
 Publish thủ công chỉ dùng khi bạn thật sự muốn publish từ máy local:
@@ -212,7 +212,13 @@ Workflow: `[.github/workflows/publish.yml](./.github/workflows/publish.yml)`
 
 3. Release: bump `package.json` + `CHANGELOG.md` → tag `v0.3.0` → `git push origin v0.3.0`
 
-Action chạy: `pnpm typecheck` → `test` → `build` → `pnpm publish --provenance` (không cần `NPM_TOKEN`).
+Action chạy: `pnpm typecheck` → `test` → `build` → `npm publish` (không cần `NPM_TOKEN`).
+
+Trusted Publishing cần npm CLI đủ mới để đọc OIDC token từ GitHub Actions. Nếu gặp `E404 Not Found - PUT https://registry.npmjs.org/<package>`, kiểm tra trước:
+
+- Workflow đang dùng Node.js 22.14+ hoặc Node.js 24+
+- Bước publish dùng `npm publish`, không dùng `pnpm publish`
+- npm package đã cấu hình Trusted Publisher đúng user/repo/workflow filename
 
 Hoặc: **Actions** → **Publish to npm** → **Run workflow** (`workflow_dispatch`).
 
